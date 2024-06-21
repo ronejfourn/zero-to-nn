@@ -62,7 +62,7 @@ zm_tensor zm_tensor_random_n(u32 _dim, u32 *_shape) {
     return t;
 }
 
-void _zm_tensor_print(zm_tensor *t, u32 ind, u32 off) {
+void _zm_tensor_print(const zm_tensor *t, u32 ind, u32 off) {
     if (ind == t->dim) {
         printf("%+9.6f  ", t->data[off]);
         return;
@@ -80,6 +80,6 @@ void _zm_tensor_print(zm_tensor *t, u32 ind, u32 off) {
         printf("%*s]\n", ind * 2, "");
 }
 
-void zm_tensor_print(zm_tensor *t) {
+void zm_tensor_print(const zm_tensor *t) {
     _zm_tensor_print(t, 0, 0);
 }

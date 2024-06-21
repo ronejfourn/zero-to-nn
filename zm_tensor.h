@@ -28,4 +28,4 @@ zm_tensor zm_tensor_random_r(u32 _dim, u32 *_shape, f32 a, f32 b);
 
 void zm_tensor_require_grad(zm_tensor *t);
 
-void zm_tensor_print(zm_tensor *t);
+void zm_tensor_print(const zm_tensor *t);

@@ -15,9 +15,15 @@ typedef struct zm_layer {
     void *layer_data;
 } zm_layer;
 
+typedef struct zm_sequential {
+    zm_layer *layers;
+    u32 n_layers;
+} zm_sequential;
+
 zm_layer zm_layer_linear(u32 in_features, u32 out_features);
 zm_layer zm_layer_flatten();
 zm_layer zm_layer_ReLU();
 zm_layer zm_layer_softmax(u32 dim);
 
-// zm_sequential();
+zm_sequential zm_sequential_create(u32 n_layers, zm_layer *layers);
+const zm_tensor zm_sequential_forward(zm_sequential *s, const zm_tensor *input);

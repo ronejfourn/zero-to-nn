@@ -133,3 +133,17 @@ zm_layer zm_layer_softmax(u32 dim) {
 
     return l;
 }
+
+zm_sequential zm_sequential_create(u32 n_layers, zm_layer *layers) {
+    zm_sequential s = {0};
+    s.n_layers = n_layers;
+    s.layers = zm_copy(layers, n_layers * sizeof(*layers));
+    return s;
+}
+
+const zm_tensor zm_sequential_forward(zm_sequential *s, const zm_tensor *input) {
+    s->layers[0].forward(&s->layers[0], input);
+    for (u32 i = 1; i < s->n_layers; i ++)
+        s->layers[i].forward(&s->layers[i], &s->layers[i-1].output);
+    return s->layers[s->n_layers - 1].output;
+}
