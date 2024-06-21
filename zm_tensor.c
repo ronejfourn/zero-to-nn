@@ -28,34 +28,38 @@ zm_tensor zm_tensor_create(u32 _dim, u32 *_shape, void *_data) {
     return t;
 }
 
+void zm_tensor_destroy(zm_tensor t) {
+    free(t.data);
+    free(t.shape);
+    free(t._offs);
+}
+
 zm_tensor zm_tensor_zeros(u32 _dim, u32 *_shape) {
     zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
     for (u32 i = 0; i < t._size_flat; i ++)
         t.data[i] = 0;
+    return t;
 }
 
 zm_tensor zm_tensor_ones(u32 _dim, u32 *_shape) {
     zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
     for (u32 i = 0; i < t._size_flat; i ++)
         t.data[i] = 1;
+    return t;
 }
 
 zm_tensor zm_tensor_random(u32 _dim, u32 *_shape) {
     zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
     for (u32 i = 0; i < t._size_flat; i ++)
         t.data[i] = zm_random();
+    return t;
 }
 
 zm_tensor zm_tensor_random_n(u32 _dim, u32 *_shape) {
     zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
     for (u32 i = 0; i < t._size_flat; i ++)
         t.data[i] = zm_random_n();
-}
-
-f32 zm_tensor_get(zm_tensor *t, u32 *index) {
-    u32 off = 0;
-    for (u32 i = 0; i < t->dim; i ++)
-        off += index[i] * t->_offs[i];
+    return t;
 }
 
 void _zm_tensor_print(zm_tensor *t, u32 ind, u32 off) {

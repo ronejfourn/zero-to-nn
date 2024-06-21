@@ -18,6 +18,8 @@ typedef struct zm_tensor {
 } zm_tensor;
 
 zm_tensor zm_tensor_create(u32 _dim, u32 *_shape, void *_data);
+void zm_tensor_destroy(zm_tensor t);
+
 zm_tensor zm_tensor_zeros(u32 _dim, u32 *_shape);
 zm_tensor zm_tensor_ones(u32 _dim, u32 *_shape);
 zm_tensor zm_tensor_random(u32 _dim, u32 *_shape);
