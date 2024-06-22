@@ -3,7 +3,6 @@
 #include "zm_layers.h"
 
 int main() {
-    u32 xs_s[] = {4, 2};
     f32 xs_v[4][2] = {
         {0,0},
         {0,1},
@@ -11,12 +10,11 @@ int main() {
         {1,1},
     };
     zm_tensor xs = zm_tensor_create_from_data(
-            zm_arraylen(xs_s), zm_copy(xs_s, zm_arraylen(xs_s) * 4), xs_v);
+            zm_copy(xs_v, sizeof(xs_v)), 4, 2);
     
-    u32 ys_s[] = {4, 1};
     f32 ys_v[4][1] = {{0}, {1}, {1}, {0}};
     zm_tensor ys = zm_tensor_create_from_data(
-            zm_arraylen(ys_s), zm_copy(ys_s, zm_arraylen(ys_s) * 4), ys_v);
+            zm_copy(ys_v, sizeof(ys_v)), 4, 1);
     
     zm_layer l[] = {
         zm_layer_linear(2, 2),
@@ -40,6 +38,8 @@ int main() {
     }
 
     zm_tensor_print_data(ypred);
+    zm_tensor_view v = zm_tensor_get_view(ypred, 1);
+    zm_tensor_print_data(&v);
 
     zm_sequential_destroy(s);
     zm_tensor_destroy(ys);
