@@ -2,12 +2,23 @@
 
 #include "zm_types.h"
 
+struct zm_tensor;
+
+#define ZM_TENSOR_BACKWARD_FXN(F) \
+    void F (struct zm_tensor *this)
+
+typedef ZM_TENSOR_BACKWARD_FXN((*zm_tensor_backward_fxn));
+
 typedef struct zm_tensor {
     u32 dim;
     u32 *shape;
     f32 *data;
 
     f32 *grad;
+    struct zm_tensor **prev;
+    u32 n_prev;
+    void *backward_data;
+    zm_tensor_backward_fxn backward;
 
     u32 *_offs;
     u32 _size_flat;
