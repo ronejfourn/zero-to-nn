@@ -6,14 +6,10 @@ typedef struct {
 } zm_layer_data_linear;
 
 ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_linear) {
-    assert(this->prev);
-
-    zm_tensor *input = this->prev[0];
-    zm_tensor *weights = this->prev[1];
-    zm_tensor *biases = this->prev[2];
-
-    assert(weights->grad);
-    assert(biases->grad);
+    zm_tensor **prev = this->prev;
+    zm_tensor *input = prev[0];
+    zm_tensor *weights = prev[1];
+    zm_tensor *biases = prev[2];
 
     u32 i_f = weights->shape[1];
     u32 o_f = weights->shape[0];
@@ -68,7 +64,7 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_linear) {
         zm_free(shape);
 
         zm_tensor *p[] = {input, &ld->weights, &ld->biases};
-        _set_prev(&this->output, p, 3);
+        zm_tensor_set_prev(&this->output, p, 3);
         this->output.backward = zm_layer_backward_linear;
     }
 

@@ -1,9 +1,7 @@
 #include "common.h"
 
 ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_ReLU) {
-    assert(this->prev);
-
-    zm_tensor *prev = this->prev[0];
+    zm_tensor *prev = this->prev;
     if (!prev->grad) return;
 
     for (u32 i = 0; i < this->_size_flat; i ++)
@@ -15,8 +13,7 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_ReLU) {
         this->input = input;
         zm_tensor_destroy(this->output);
         this->output = zm_tensor_create(input->dim, input->shape, NULL, true);
-        zm_tensor *p[] = {input};
-        _set_prev(&this->output, p, 1);
+        zm_tensor_set_prev(&this->output, input, 1);
         this->output.backward = zm_layer_backward_ReLU;
     }
 

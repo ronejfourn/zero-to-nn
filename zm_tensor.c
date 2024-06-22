@@ -85,4 +85,8 @@ static void _zm_tensor_print(const zm_tensor *t, u32 ind, u32 off) {
 
 void zm_tensor_print(const zm_tensor *t) {
     _zm_tensor_print(t, 0, 0);
+void _zm_tensor_set_prev(zm_tensor *t, void *p, u32 n, char *file, u32 line) {
+    zm_trace(file, line);
+    t->n_prev = n;
+    t->prev = (n == 1) ? p : zm_copy(p, sizeof(void*) * n);
 }

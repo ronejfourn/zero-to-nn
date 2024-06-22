@@ -3,7 +3,7 @@
 #include "zm_types.h"
 #include <stdio.h>
 
-#ifdef ZM_TRACE_ENABLE
+#if ZM_TRACE_ENABLE
 #define ZM_TRACE_FMT "%s:%d: %s"
 #define zm_trace(_FILE, _LINE) printf(ZM_TRACE_FMT"\n", _FILE, _LINE, __FUNCTION__)
 #else

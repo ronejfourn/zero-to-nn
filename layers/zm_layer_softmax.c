@@ -7,9 +7,7 @@ typedef struct {
 } zm_layer_data_softmax;
 
 ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
-    assert(this->prev);
-
-    zm_tensor *prev = this->prev[0];
+    zm_tensor *prev = this->prev;
     if (!prev->grad) return;
 
     memset(prev->grad, 0, prev->_size_flat);
@@ -40,8 +38,7 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_softmax) {
         zm_tensor_destroy(this->output);
         this->output = zm_tensor_create(input->dim, input->shape, NULL, true);
 
-        zm_tensor *p[] = {input};
-        _set_prev(&this->output, p, 1);
+        zm_tensor_set_prev(&this->output, input, 1);
         this->output.backward = zm_layer_backward_softmax;
         this->output.backward_data = (void *)(uintptr_t)ld->dim;
     }

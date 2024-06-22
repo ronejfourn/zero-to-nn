@@ -15,7 +15,7 @@ typedef struct zm_tensor {
     f32 *data;
 
     f32 *grad;
-    struct zm_tensor **prev;
+    void *prev;
     u32 n_prev;
     void *backward_data;
     zm_tensor_backward_fxn backward;
@@ -42,3 +42,5 @@ zm_tensor _zm_tensor_randn(u32 _dim, u32 *_shape, char *file, u32 line);
 void _zm_tensor_require_grad(zm_tensor *t, char *file, u32 line);
 
 void zm_tensor_print(const zm_tensor *t);
+#define zm_tensor_set_prev(...) _zm_tensor_set_prev(__VA_ARGS__, __FILE__, __LINE__)
+void _zm_tensor_set_prev(zm_tensor *t, void *p, u32 n, char *file, u32 line);
