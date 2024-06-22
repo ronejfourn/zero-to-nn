@@ -41,6 +41,10 @@ zm_tensor _zm_tensor_randn(u32 _dim, u32 *_shape, char *file, u32 line);
 #define zm_tensor_require_grad(...) _zm_tensor_require_grad(__VA_ARGS__, __FILE__, __LINE__)
 void _zm_tensor_require_grad(zm_tensor *t, char *file, u32 line);
 
-void zm_tensor_print(const zm_tensor *t);
+void zm_tensor_backward(zm_tensor *this);
+
+void zm_tensor_print_data(const zm_tensor *t);
+void zm_tensor_print_grad(const zm_tensor *t);
+
 #define zm_tensor_set_prev(...) _zm_tensor_set_prev(__VA_ARGS__, __FILE__, __LINE__)
 void _zm_tensor_set_prev(zm_tensor *t, void *p, u32 n, char *file, u32 line);

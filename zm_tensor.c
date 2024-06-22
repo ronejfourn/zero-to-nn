@@ -65,26 +65,59 @@ void _zm_tensor_require_grad(zm_tensor *t, char* file, u32 line) {
     }
 }
 
-static void _zm_tensor_print(const zm_tensor *t, u32 ind, u32 off) {
+void zm_tensor_backward(zm_tensor *this) { // TODO: topological sort
+    if (!this || !this->prev) return;
+    this->backward(this);
+
+    if (this->n_prev == 1) {
+        zm_tensor_backward(this->prev);
+    } else if (this->n_prev > 1) {
+        zm_tensor **prev = this->prev;
+        for (u32 i = 0; i < this->n_prev; i ++)
+            zm_tensor_backward(prev[i]);
+    }
+}
+
+static void _zm_tensor_print(const float *d, const zm_tensor *t, u32 ind, u32 off) {
     if (ind == t->dim) {
-        printf("%+9.6f  ", t->data[off]);
+        printf("%+9.6f  ", d[off]);
         return;
     }
 
-    if (ind + 1 == t->dim)
-        printf("%*s[  ", ind * 2, "");
-    else
-        printf("%*s[\n", ind * 2, "");
-    for (int i = 0; i < t->shape[ind]; i ++)
-        _zm_tensor_print(t, ind + 1, off + i * t->_offs[ind]);
-    if (ind + 1 == t->dim)
-        printf("]\n");
-    else
-        printf("%*s]\n", ind * 2, "");
+    printf("[");
+    _zm_tensor_print(d, t, ind + 1, off);
+    const u32 S = t->_offs[ind];
+    const u32 T = t->shape[ind] * S;
+    if (ind + 1 != t->dim) {
+        if (T > S) printf("\n");
+        for (int i = S; i < T; i += S) {
+            printf("%*s", ind + 1, "");
+            _zm_tensor_print(d, t, ind + 1, off + i);
+            if (i < T - S) printf("\n");
+        }
+    } else {
+        for (int i = S; i < T; i += S) {
+            printf("%*s", ind + 1, "");
+            _zm_tensor_print(d, t, ind + 1, off + i);
+        }
+    }
+    printf("]");
 }
 
-void zm_tensor_print(const zm_tensor *t) {
-    _zm_tensor_print(t, 0, 0);
+void zm_tensor_print_data(const zm_tensor *t) {
+    _zm_tensor_print(t->data, t, 0, 0);
+    printf("\n");
+}
+
+void zm_tensor_print_grad(const zm_tensor *t) {
+    if (t->grad)  {
+        _zm_tensor_print(t->grad, t, 0, 0);
+        printf("\n");
+    } else {
+        printf("(nil)\n");
+    }
+}
+
 void _zm_tensor_set_prev(zm_tensor *t, void *p, u32 n, char *file, u32 line) {
     zm_trace(file, line);
     t->n_prev = n;
