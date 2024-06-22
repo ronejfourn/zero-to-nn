@@ -1,18 +1,19 @@
+#include "zm_util.h"
 #include "zm_tensor.h"
 #include "zm_random.h"
 
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <stdio.h>
 
-zm_tensor zm_tensor_create(u32 _dim, u32 *_shape, void *_data) {
+zm_tensor _zm_tensor_create(u32 _dim, u32 *_shape, void *_data, bool require_grad, const char *file, u32 line) {
+    zm_trace(file, line);
     assert(_dim && _shape);
 
     zm_tensor t = {0};
     t.dim = _dim;
-    t.shape = malloc(_dim);
-    t._offs = malloc(_dim);
+    t.shape = zm_malloc(_dim * sizeof(u32));
+    t._offs = zm_malloc(_dim * sizeof(u32));
 
     t._size_flat = 1;
     for (u32 i = 0; i < _dim; i ++) {
@@ -21,48 +22,50 @@ zm_tensor zm_tensor_create(u32 _dim, u32 *_shape, void *_data) {
         t.shape[i] = _shape[i];
     }
 
-    t.data = malloc(t._size_flat * sizeof(f32));
-    if (!_data) return t;
+    t.data = zm_copy(_data, t._size_flat * sizeof(f32));
+    if (require_grad)
+        t.grad = zm_malloc(t._size_flat * sizeof(f32));
 
-    memcpy(t.data, _data, t._size_flat * sizeof(f32));
     return t;
 }
 
-void zm_tensor_destroy(zm_tensor t) {
-    free(t.data);
-    free(t.shape);
-    free(t._offs);
+void _zm_tensor_destroy(zm_tensor t, const char *file, u32 line) {
+    zm_trace(file, line);
+    zm_free(t.grad);
+    zm_free(t.data);
+    zm_free(t._offs);
+    zm_free(t.shape);
 }
 
-zm_tensor zm_tensor_zeros(u32 _dim, u32 *_shape) {
-    zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
+zm_tensor _zm_tensor_fill(u32 _dim, u32 *_shape, f32 v, char *file, u32 line) {
+    zm_tensor t = _zm_tensor_create(_dim, _shape, NULL, false, file, line);
     for (u32 i = 0; i < t._size_flat; i ++)
-        t.data[i] = 0;
+        t.data[i] = v;
     return t;
 }
 
-zm_tensor zm_tensor_ones(u32 _dim, u32 *_shape) {
-    zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
+zm_tensor _zm_tensor_rand(u32 _dim, u32 *_shape, char *file, u32 line) {
+    zm_tensor t = _zm_tensor_create(_dim, _shape, NULL, false, file, line);
     for (u32 i = 0; i < t._size_flat; i ++)
-        t.data[i] = 1;
+        t.data[i] = zm_rand();
     return t;
 }
 
-zm_tensor zm_tensor_random(u32 _dim, u32 *_shape) {
-    zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
+zm_tensor _zm_tensor_randn(u32 _dim, u32 *_shape, char *file, u32 line) {
+    zm_tensor t = _zm_tensor_create(_dim, _shape, NULL, false, file, line);
     for (u32 i = 0; i < t._size_flat; i ++)
-        t.data[i] = zm_random();
+        t.data[i] = zm_randn();
     return t;
 }
 
-zm_tensor zm_tensor_random_n(u32 _dim, u32 *_shape) {
-    zm_tensor t = zm_tensor_create(_dim, _shape, NULL);
-    for (u32 i = 0; i < t._size_flat; i ++)
-        t.data[i] = zm_random_n();
-    return t;
+void _zm_tensor_require_grad(zm_tensor *t, char* file, u32 line) {
+    if (!t->grad) {
+        zm_trace(file, line);
+        t->grad = zm_malloc(t->_size_flat * sizeof(f32));
+    }
 }
 
-void _zm_tensor_print(const zm_tensor *t, u32 ind, u32 off) {
+static void _zm_tensor_print(const zm_tensor *t, u32 ind, u32 off) {
     if (ind == t->dim) {
         printf("%+9.6f  ", t->data[off]);
         return;

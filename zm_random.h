@@ -2,6 +2,6 @@
 
 #include "zm_types.h"
 
-f32 zm_random();
-f32 zm_random_n();
-f32 zm_random_r(f32 a, f32 b);
+f32 zm_rand();
+f32 zm_randn();
+f32 zm_randr(f32 a, f32 b);

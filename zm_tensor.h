@@ -8,24 +8,26 @@ typedef struct zm_tensor {
     f32 *data;
 
     f32 *grad;
-    // grad_func
-
-    struct zm_tensor **prev;
-    u32 prev_count;
 
     u32 *_offs;
     u32 _size_flat;
 } zm_tensor;
 
-zm_tensor zm_tensor_create(u32 _dim, u32 *_shape, void *_data);
-void zm_tensor_destroy(zm_tensor t);
+#define zm_tensor_create(...) _zm_tensor_create(__VA_ARGS__, __FILE__, __LINE__)
+#define zm_tensor_destroy(...) _zm_tensor_destroy(__VA_ARGS__, __FILE__, __LINE__)
+zm_tensor _zm_tensor_create(u32 _dim, u32 *_shape, void *_data, bool require_grad, const char *file, u32 line);
+void _zm_tensor_destroy(zm_tensor t, const char *file, u32 line);
 
-zm_tensor zm_tensor_zeros(u32 _dim, u32 *_shape);
-zm_tensor zm_tensor_ones(u32 _dim, u32 *_shape);
-zm_tensor zm_tensor_random(u32 _dim, u32 *_shape);
-zm_tensor zm_tensor_random_n(u32 _dim, u32 *_shape);
-zm_tensor zm_tensor_random_r(u32 _dim, u32 *_shape, f32 a, f32 b);
+#define zm_tensor_fill(...) _zm_tensor_fill(__VA_ARGS__, __FILE__, __LINE__)
+#define zm_tensor_rand(...) _zm_tensor_rand(__VA_ARGS__, __FILE__, __LINE__)
+#define zm_tensor_randn(...) _zm_tensor_randn(__VA_ARGS__, __FILE__, __LINE__)
+zm_tensor _zm_tensor_fill(u32 _dim, u32 *_shape, f32 val, char *file, u32 line);
+zm_tensor _zm_tensor_rand(u32 _dim, u32 *_shape, char *file, u32 line);
+zm_tensor _zm_tensor_randn(u32 _dim, u32 *_shape, char *file, u32 line);
+#define zm_tensor_zeros(...) _zm_tensor_fill(__VA_ARGS__, 0, __FILE__, __LINE__)
+#define zm_tensor_ones(...) _zm_tensor_fill(__VA_ARGS__, 1, __FILE__, __LINE__)
 
-void zm_tensor_require_grad(zm_tensor *t);
+#define zm_tensor_require_grad(...) _zm_tensor_require_grad(__VA_ARGS__, __FILE__, __LINE__)
+void _zm_tensor_require_grad(zm_tensor *t, char *file, u32 line);
 
 void zm_tensor_print(const zm_tensor *t);

@@ -18,7 +18,7 @@ int main() {
         },
     };
 
-    zm_tensor i = zm_tensor_create(3, s1, d1);
+    zm_tensor i = zm_tensor_create(3, s1, d1, false);
 
     zm_layer l[] = {
         zm_layer_flatten(),
@@ -27,7 +27,10 @@ int main() {
         zm_layer_softmax(1),
     };
 
-    zm_sequential seq = zm_sequential_create(zm_arraylen(l), l);
-    zm_tensor o =  zm_sequential_forward(&seq, &i);
-    zm_tensor_print(&o);
+    zm_sequential seq = {l, zm_arraylen(l)};
+    const zm_tensor *o = zm_sequential_forward(&seq, &i);
+    zm_sequential_backward(&seq);
+
+    zm_tensor_destroy(i);
+    zm_sequential_destroy(seq);
 }
