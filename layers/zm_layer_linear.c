@@ -7,8 +7,8 @@ typedef struct {
 
 ZM_LAYER_ZERO_GRAD_FXN(zm_layer_zero_grad_linear) {
     zm_layer_data_linear *ld = this->data;
-    memset(ld->biases.grad, 0, ld->biases._size_flat * sizeof(f32));
-    memset(ld->weights.grad, 0, ld->weights._size_flat * sizeof(f32));
+    memset(ld->biases.grad, 0, ld->biases.size * 4);
+    memset(ld->weights.grad, 0, ld->weights.size * 4);
 }
 
 ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_linear) {
@@ -20,7 +20,7 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_linear) {
     u32 i_f = weights->shape[1];
     u32 o_f = weights->shape[0];
 
-    u32 iter = this->_size_flat / o_f;
+    u32 iter = this->size / o_f;
     for (u32 k = 0; k < iter; k ++)
         for (u32 i = 0; i < o_f; i ++)
             biases->grad[i] += this->grad[k * o_f + i];
@@ -59,23 +59,18 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_linear) {
     assert(input->shape[input->dim - 1] == i_f);
 
     if (input != this->input) {
-        this->input = input;
-        u32 *shape = zm_copy(input->shape, input->dim * sizeof(*input->shape));
+        u32 *shape = zm_copy(input->shape, input->dim * 4);
         shape[input->dim - 1] = o_f;
-        zm_tensor_destroy(this->output);
-        this->output = zm_tensor_create(input->dim, shape, NULL, true);
-        zm_free(shape);
-
-        zm_tensor *p[] = {input, &ld->weights, &ld->biases};
-        zm_tensor_set_prev(&this->output, p, 3);
-        this->output.backward = zm_layer_backward_linear;
+        _update(this, input, zm_layer_backward_linear,
+                zm_tensor_create_from_shape(input->dim, shape));
+        zm_tensor_set_prev(&this->output, input, &ld->weights, &ld->biases);
     }
 
-    u32 iter = this->output._size_flat / o_f;
+    u32 iter = this->output.size / o_f;
     for (u32 k = 0; k < iter; k ++) {
         f32 *ovec = this->output.data + k * o_f;
         f32 *ivec = input->data + k * i_f;
-        memcpy(ovec, ld->biases.data, sizeof(f32) * o_f);
+        memcpy(ovec, ld->biases.data, o_f * 4);
         for (u32 i = 0; i < o_f; i ++) {
             f32 *wvec = ld->weights.data + i * i_f;
             for (u32 j = 0; j < i_f; j ++)
@@ -98,22 +93,20 @@ ZM_LAYER_SHD_FXN(zm_layer_shd_linear) {
     zm_tensor *weights = &ld->weights;
     zm_tensor *biases = &ld->biases;
 
-    for (u32 i = 0; i < weights->_size_flat; i++)
+    for (u32 i = 0; i < weights->size; i++)
         weights->data[i] -= lr * weights->grad[i];
 
-    for (u32 i = 0; i < biases->_size_flat; i++)
+    for (u32 i = 0; i < biases->size; i++)
         biases->data[i] -= lr * biases->grad[i];
 }
 
 zm_layer _zm_layer_linear(u32 in_features, u32 out_features, char *file, u32 line) {
     zm_trace(file, line);
-    u32 w_shape[] = {out_features, in_features};
-    u32 b_shape[] = {out_features};
 
     zm_layer_data_linear *data = zm_malloc(sizeof(*data));
-    data->weights = zm_tensor_randn(2, w_shape);
+    data->weights = zm_tensor_randn(out_features, in_features);
     zm_tensor_require_grad(&data->weights);
-    data->biases  = zm_tensor_ones(1, b_shape);
+    data->biases  = zm_tensor_ones(out_features);
     zm_tensor_require_grad(&data->biases);
 
     L(linear);

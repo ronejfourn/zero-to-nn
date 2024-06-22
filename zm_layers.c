@@ -25,8 +25,8 @@ void zm_layer_shd(zm_layer *this, f32 lr) {
 }
 
 void zm_layer_zero_grad(zm_layer *this) {
-    memset(this->output.grad, 0, this->output._size_flat * sizeof(f32));
     if (this->zero_grad) this->zero_grad(this);
+    memset(this->output.grad, 0, this->output.size * 4);
 }
 
 void _zm_sequential_destroy(zm_sequential s, char *file, u32 line) {

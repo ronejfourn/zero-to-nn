@@ -11,11 +11,11 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
     if (!prev->grad) return;
 
     uintptr_t dim = (uintptr_t)this->backward_data;
-    u32 I = dim ? prev->_offs[dim - 1] : prev->_size_flat;
-    u32 J = prev->_offs[dim];
+    u32 I = dim ? prev->step[dim - 1] : prev->size;
+    u32 J = prev->step[dim];
     u32 K = prev->shape[dim] * J;
 
-    for (int i = 0; i < prev->_size_flat; i += I) {
+    for (int i = 0; i < prev->size; i += I) {
         f32 *oi = this->data + i;
         f32 *gi = prev->grad + i;
         for (u32 j = 0; j < J; j ++) {
@@ -31,22 +31,19 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
 ZM_LAYER_FORWARD_FXN(zm_layer_forward_softmax) {
     zm_layer_data_softmax *ld = this->data;
     if (input != this->input) {
-        this->input = input;
         assert(ld->dim < input->dim);
-        zm_tensor_destroy(this->output);
-        this->output = zm_tensor_create(input->dim, input->shape, NULL, true);
-
+        _update(this, input, zm_layer_backward_softmax,
+                zm_tensor_create_from_shape(input->dim, zm_copy(input->shape, input->dim * 4)));
         zm_tensor_set_prev(&this->output, input, 1);
-        this->output.backward = zm_layer_backward_softmax;
         this->output.backward_data = (void *)(uintptr_t)ld->dim;
     }
 
     zm_tensor *output = &this->output;
-    u32 I = ld->dim ? input->_offs[ld->dim - 1] : input->_size_flat;
-    u32 J = input->_offs[ld->dim];
+    u32 I = ld->dim ? input->step[ld->dim - 1] : input->size;
+    u32 J = input->step[ld->dim];
     u32 K = input->shape[ld->dim] * J;
 
-    for (int i = 0; i < input->_size_flat; i += I) {
+    for (int i = 0; i < input->size; i += I) {
         f32 *oi = output->data + i;
         for (u32 j = 0; j < J; j ++) {
             f32 sum = 0;

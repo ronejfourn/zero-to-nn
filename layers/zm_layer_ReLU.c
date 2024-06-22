@@ -4,20 +4,18 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_ReLU) {
     zm_tensor *prev = this->prev;
     if (!prev->grad) return;
 
-    for (u32 i = 0; i < this->_size_flat; i ++)
+    for (u32 i = 0; i < this->size; i ++)
         prev->grad[i] = (prev->data[i] > 0) * this->grad[i];
 }
 
 ZM_LAYER_FORWARD_FXN(zm_layer_forward_ReLU) {
     if (input != this->input) {
-        this->input = input;
-        zm_tensor_destroy(this->output);
-        this->output = zm_tensor_create(input->dim, input->shape, NULL, true);
-        zm_tensor_set_prev(&this->output, input, 1);
-        this->output.backward = zm_layer_backward_ReLU;
+        _update(this, input, zm_layer_backward_ReLU,
+                zm_tensor_create_from_shape(input->dim, zm_copy(input->shape, input->dim * 4)));
+        zm_tensor_set_prev(&this->output, input);
     }
 
-    for (u32 i = 0; i < input->_size_flat; i ++)
+    for (u32 i = 0; i < input->size; i ++)
         this->output.data[i] = input->data[i] * (input->data[i] > 0);
 }
 

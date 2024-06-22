@@ -7,7 +7,7 @@ ZM_TENSOR_BACKWARD_FXN(zm_loss_backward_mse) {
     zm_tensor *target = prev[1];
     if (!input->grad) return;
 
-    u32 N = input->_offs[0];
+    u32 N = input->step[0];
     for (u32 i = 0; i < input->shape[0]; i ++) {
         f32 *x = input->data + i * N;
         f32 *y = target->data + i * N;
@@ -20,11 +20,10 @@ ZM_TENSOR_BACKWARD_FXN(zm_loss_backward_mse) {
 ZM_LOSS_FXN(zm_loss_fxn_mse) {
     if (this->input != input) { //TODO: assert same shape
         this->input = input;
-        zm_tensor *prev[] = {input, target};
-        zm_tensor_set_prev(&this->output, prev, 2);
+        zm_tensor_set_prev(&this->output, input, target);
     }
 
-    u32 N = input->_offs[0];
+    u32 N = input->step[0];
     this->output.data[0] = 0;
     for (u32 i = 0; i < input->shape[0]; i ++) {
         f32 *x = input->data + i * N;
@@ -46,8 +45,7 @@ zm_loss _zm_loss_mse(char *file, u32 line) {
     l.fn = zm_loss_fxn_mse;
     l.destroy = zm_loss_destroy_mse;
 
-    u32 shape[] = {1};
-    l.output = zm_tensor_create(1, shape, NULL, false);
+    l.output = zm_tensor_create(1);
     l.output.backward = zm_loss_backward_mse;
 
     return l;

@@ -10,11 +10,13 @@ int main() {
         {1,0},
         {1,1},
     };
-    zm_tensor xs = zm_tensor_create(zm_arraylen(xs_s), xs_s, xs_v, false);
+    zm_tensor xs = zm_tensor_create_from_data(
+            zm_arraylen(xs_s), zm_copy(xs_s, zm_arraylen(xs_s) * 4), xs_v);
     
     u32 ys_s[] = {4, 1};
     f32 ys_v[4][1] = {{0}, {1}, {1}, {0}};
-    zm_tensor ys = zm_tensor_create(zm_arraylen(ys_s), ys_s, ys_v, false);
+    zm_tensor ys = zm_tensor_create_from_data(
+            zm_arraylen(ys_s), zm_copy(ys_s, zm_arraylen(ys_s) * 4), ys_v);
     
     zm_layer l[] = {
         zm_layer_linear(2, 2),
