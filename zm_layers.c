@@ -1,15 +1,18 @@
 #include "zm_util.h"
 #include "zm_layers.h"
 
-#include <assert.h>
 #include <string.h>
 #include <math.h>
 
-const zm_tensor *zm_sequential_forward(zm_sequential *s, zm_tensor *input) {
-    s->layers[0].forward(&s->layers[0], input);
+zm_tensor *zm_layer_forward(struct zm_layer *this, zm_tensor *input) {
+    this->forward(this, input);
+    return &this->output;
+}
+
+zm_tensor *zm_sequential_forward(zm_sequential *s, zm_tensor *input) {
     for (u32 i = 1; i < s->n_layers; i ++)
-        s->layers[i].forward(&s->layers[i], &s->layers[i-1].output);
-    return &s->layers[s->n_layers - 1].output;
+        input = zm_layer_forward(s->layers + i, input);
+    return input;
 }
 
 /* void zm_sequential_backward(zm_sequential *s) { */
