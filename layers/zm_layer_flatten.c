@@ -20,7 +20,6 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_flatten) {
 }
 
 ZM_LAYER_DESTROY_FXN(zm_layer_destroy_flatten) {
-    this.input = NULL;
     zm_tensor_destroy(this.output);
 }
 

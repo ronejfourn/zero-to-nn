@@ -10,8 +10,6 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
     zm_tensor *prev = this->prev;
     if (!prev->grad) return;
 
-    memset(prev->grad, 0, prev->_size_flat);
-
     uintptr_t dim = (uintptr_t)this->backward_data;
     u32 I = dim ? prev->_offs[dim - 1] : prev->_size_flat;
     u32 J = prev->_offs[dim];
@@ -31,7 +29,7 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
 }
 
 ZM_LAYER_FORWARD_FXN(zm_layer_forward_softmax) {
-    zm_layer_data_softmax *ld = this->layer_data;
+    zm_layer_data_softmax *ld = this->data;
     if (input != this->input) {
         this->input = input;
         assert(ld->dim < input->dim);
@@ -63,9 +61,8 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_softmax) {
 }
 
 ZM_LAYER_DESTROY_FXN(zm_layer_destroy_softmax) {
-    this.input = NULL;
     zm_tensor_destroy(this.output);
-    zm_free(this.layer_data);
+    zm_free(this.data);
 }
 
 zm_layer _zm_layer_softmax(u32 dim, char *file, u32 line) {
@@ -74,8 +71,7 @@ zm_layer _zm_layer_softmax(u32 dim, char *file, u32 line) {
     data->dim = dim;
 
     L(softmax);
-    l.layer_data = data;
+    l.data = data;
 
     return l;
 }
-

@@ -11,7 +11,7 @@ void *_zm_copy(const void*src, u32 size, const char *file, u32 line) {
 }
 
 void *_zm_malloc(u32 size, const char *file, u32 line) {
-    void *d = malloc(size);
+    void *d = calloc(size, 1);
 #if ZM_TRACE_ENABLE
     printf(ZM_TRACE_FMT"(%d) -> %p\n", file, line, "malloc", size, d);
 #endif

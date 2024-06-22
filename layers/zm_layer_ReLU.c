@@ -22,7 +22,6 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_ReLU) {
 }
 
 ZM_LAYER_DESTROY_FXN(zm_layer_destroy_ReLU) {
-    this.input = NULL;
     zm_tensor_destroy(this.output);
 }
 
