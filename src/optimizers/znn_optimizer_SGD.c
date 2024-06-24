@@ -1,6 +1,10 @@
 #include "../znn_optimizers.h"
+#include <omp.h>
 
 ZNN_OPTIMIZER_STEP_FXN(znn_optimizer_step_SGD) {
+#if ZNN_OPENMP_ENABLE
+    #pragma omp parallel for
+#endif
     for (u32 i = 0; i < this->n_params; i ++) {
         u32 S = this->parameters[i]->size;
         u32 L = S - (S & ~3);

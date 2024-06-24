@@ -18,7 +18,6 @@ typedef ZNN_TENSOR_BACKWARD_FXN((*znn_tensor_backward_fxn));
     u32 *step;         \
     u32 size
 
-#pragma pack(push, 8)
 typedef struct znn_tensor_view {
     ZNN_TENSOR_VIEW;
 } znn_tensor_view;
@@ -32,7 +31,6 @@ typedef struct znn_tensor {
     void *backward_data;
     znn_tensor_backward_fxn backward;
 } znn_tensor;
-#pragma pack(pop)
 
 #undef ZNN_TENSOR_VIEW
 

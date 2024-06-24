@@ -88,8 +88,12 @@ bool check(f32 *p, f32 *y) {
 }
 
 int main() {
-    dataset train = load_mnist("train-images.idx3-ubyte", "train-labels.idx1-ubyte");
-    dataset test = load_mnist("t10k-images.idx3-ubyte", "t10k-labels.idx1-ubyte");
+    dataset train = load_mnist(
+            ZNN_DATASET_DIR"train-images-idx3-ubyte",
+            ZNN_DATASET_DIR"train-labels-idx1-ubyte");
+    dataset test = load_mnist(
+            ZNN_DATASET_DIR"t10k-images-idx3-ubyte",
+            ZNN_DATASET_DIR"t10k-labels-idx1-ubyte");
 
 #if 0
 
@@ -145,6 +149,8 @@ int main() {
             znn_tensor_destroy(x);
             znn_tensor_destroy(y);
         }
+
+        sgd.learning_rate = LEARNING_RATE * (1.0f - 0.9f * epoch / EPOCHS);
 
         f32 test_loss = 0, correct = 0, count = 0;
         while (get_batch(&test, &x, &y)) {

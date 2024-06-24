@@ -1,5 +1,9 @@
 #include "common.h"
 
+#if ZNN_OPENMP_ENABLE
+#include <omp.h>
+#endif
+
 ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_softmax) {
     uintptr_t dim = (uintptr_t)this->backward_data;
     znn_tensor *prev = this->prev;
@@ -7,6 +11,9 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_softmax) {
     u32 J = prev->step[dim];
     u32 K = prev->shape[dim] * J;
 
+#if ZNN_OPENMP_ENABLE
+    #pragma omp parallel for
+#endif
     for (int i = 0; i < prev->size; i += I) {
         f32 *oi = this->data + i, *gi = prev->grad + i;
         for (u32 j = 0; j < J; j ++) {
@@ -39,6 +46,9 @@ ZNN_LAYER_FORWARD_FXN(znn_layer_forward_softmax) {
     u32 J = input->step[dim];
     u32 K = input->shape[dim] * J;
 
+#if ZNN_OPENMP_ENABLE
+    #pragma omp parallel for
+#endif
     for (int i = 0; i < input->size; i += I) {
         f32 *oi = output->data + i;
         for (u32 j = 0; j < J; j ++) {
