@@ -31,6 +31,29 @@ znn_tensor znn_tensor_from_view(znn_tensor_view *v) {
     return t;
 }
 
+void _znn_tensor_divide(znn_tensor_view *t, f32 s) {
+    for (u32 i = 0; i < t->size; i ++)
+        t->data[i] /= s;
+}
+
+znn_tensor _znn_tensor_one_hot(znn_tensor_view *input, u32 num_classes, const char *file, u32 line) {
+    znn_trace(file, line);
+
+    u32 *shape = znn_malloc((input->dim + 1) * 4);
+    memcpy(shape, input->shape, input->dim * 4);
+    shape[input->dim] = num_classes;
+
+    znn_tensor output = znn_tensor_create_from_shape(input->dim + 1, shape);
+
+    for (u32 i = 0; i < input->size; i ++) {
+        i64 o = (i64)input->data[i];
+        assert(input->data[i] == o && (o >= 0 && o < num_classes));
+        output.data[i * num_classes + o] = 1;
+    }
+
+    return output;
+}
+
 znn_tensor_view _znn_tensor_get_view(znn_tensor_view *t, ...) {
     znn_tensor_view v = *t;
     v.is_view = true;
@@ -95,7 +118,6 @@ znn_tensor _znn_tensor_create(const char *file, u32 line, ...) {
 
 znn_tensor _znn_tensor_create_from_data(const char *file, u32 line, void *data, ...) {
     znn_trace(file, line); // TODO: errors
-    assert(data);
 
     va_list va; va_start(va, data);
     znn_tensor t = _znn_tensor_init_v(va, false);

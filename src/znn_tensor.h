@@ -36,9 +36,15 @@ znn_tensor_view znn_tensor_as_tensor_view(znn_tensor *t);
 znn_tensor znn_tensor_view_as_tensor(znn_tensor_view *v);
 znn_tensor znn_tensor_from_view(znn_tensor_view *v);
 
-#define znn_tensor_get_view(T, ...) _znn_tensor_get_view((znn_tensor_view *)T, __VA_ARGS__, -1)
+#define znn_tensor_divide(T, S) _znn_tensor_divide((znn_tensor_view *)(T), S)
+void _znn_tensor_divide(znn_tensor_view *t, f32 s);
+
+#define znn_tensor_one_hot(I, N) _znn_tensor_one_hot((znn_tensor_view *)(I), N, __FILE__, __LINE__)
+znn_tensor _znn_tensor_one_hot(znn_tensor_view *i, u32 num_classes, const char *file, u32 line);
+
+#define znn_tensor_get_view(T, ...) _znn_tensor_get_view((znn_tensor_view *)(T), __VA_ARGS__, -1)
 znn_tensor_view _znn_tensor_get_view(znn_tensor_view *t, ...);
-#define znn_tensor_get_range(T, A, B) _znn_tensor_get_range((znn_tensor_view *)T, A, B)
+#define znn_tensor_get_range(T, A, B) _znn_tensor_get_range((znn_tensor_view *)(T), A, B)
 znn_tensor_view _znn_tensor_get_range(znn_tensor_view *t, u32 a, u32 b);
 
 #define znn_tensor_create(...) _znn_tensor_create(__FILE__, __LINE__, __VA_ARGS__, -1)
@@ -67,11 +73,11 @@ void _znn_tensor_require_grad(char* file, u32 line, znn_tensor *t);
 
 void znn_tensor_backward(znn_tensor *this);
 
-#define znn_tensor_print_data(T) _znn_tensor_print_data((const znn_tensor_view *)T)
+#define znn_tensor_print_data(T) _znn_tensor_print_data((const znn_tensor_view *)(T))
 void _znn_tensor_print_data(const znn_tensor_view *t);
-#define znn_tensor_print_grad(T) _znn_tensor_print_grad((const znn_tensor_view *)T)
+#define znn_tensor_print_grad(T) _znn_tensor_print_grad((const znn_tensor_view *)(T))
 void _znn_tensor_print_grad(const znn_tensor_view *t);
-#define znn_tensor_print_shape(T) _znn_tensor_print_grad((const znn_tensor_view *)T)
+#define znn_tensor_print_shape(T) _znn_tensor_print_grad((const znn_tensor_view *)(T))
 void _znn_tensor_print_shape(const znn_tensor_view *t);
 
 #define znn_tensor_set_prev(T, ...) _znn_tensor_set_prev(__FILE__, __LINE__, T, __VA_ARGS__, NULL)
