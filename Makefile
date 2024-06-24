@@ -9,6 +9,7 @@ DATASET_PATH := $(DATASETS:%=$(DATASET_DIR)/%)
 
 CFLAGS := -DZNN_DATASET_DIR=\"$(DATASET_DIR)/\" -DZNN_OPENMP_ENABLE=1
 CFLAGS += -march=native -O3 -fopenmp -ffast-math
+CFLAGS += -Wall -pedantic
 
 LDFLAGS := -lm -fopenmp -ffast-math
 

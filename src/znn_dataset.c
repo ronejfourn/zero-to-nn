@@ -122,19 +122,25 @@ bool _znn_dataset_get_batch_idx(znn_dataset_idx *d, u32 bs, znn_tensor *x) {
                 }
             } break;
             case ZNN_IDX_FLOAT  : {
-                for (u32 k = 0; k < L; k += 4) {
-                    u32 a = znn_correct_endian32(*(u32*)(buf + k));
-                    *(xp++) = *(f32*)&a;
+                for (u32 k = 0; k < (L >> 2); k ++) {
+                    f32 *fbuf = (f32*)buf;
+                    u32 *ubuf = (u32*)buf;
+                    ubuf[k] = znn_correct_endian32(*(u32*)(buf + (k << 2)));
+                    *(xp++) = fbuf[k];
                 }
             } break;
             case ZNN_IDX_DOUBLE : {
-                u64 a = znn_correct_endian64(*(u64*)buf);
-                *(xp++) = *(f64*)&a;
+                f64 *fbuf = (f64*)buf;
+                u64 *ubuf = (u64*)buf;
+                ubuf[0] = znn_correct_endian32(*(u64*)buf);
+                *(xp++) = fbuf[0];
             } break;
             default: znn_unreachable();
             }
         }
     }
+
+    return true;
 }
 
 bool znn_dataset_get_batch(znn_dataset *d, u32 bs, znn_tensor *x, znn_tensor *y) {

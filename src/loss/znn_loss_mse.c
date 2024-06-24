@@ -44,7 +44,6 @@ ZNN_LOSS_FXN(znn_loss_fxn_mse) {
     for (u32 i = 0; i < input->shape[0]; i ++) {
         f32 *x = input->data + i * N;
         f32 *y = target->data + i * N;
-        f32 e = 0;
         for (u32 j = 0; j < N; j ++)
             s += (x[j] - y[j]) * (x[j] - y[j]);
     }

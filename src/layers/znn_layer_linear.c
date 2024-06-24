@@ -13,9 +13,7 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_n) {
     znn_tensor **prev = this->prev;
     u32 fi = prev[1]->shape[1];
     u32 fo = prev[1]->shape[0];
-
     u32 K = this->size / fo;
-    u32 L = fi - (fi & ~3);
 
 #if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
@@ -36,9 +34,7 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_y) {
     znn_tensor **prev = this->prev;
     u32 fi = prev[1]->shape[1];
     u32 fo = prev[1]->shape[0];
-
     u32 K = this->size / fo;
-    u32 L = fi - (fi & ~3);
 
 #if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
@@ -83,9 +79,7 @@ ZNN_LAYER_FORWARD_FXN(znn_layer_forward_linear) {
 
     u32 fi = wt->shape[1];
     u32 fo = wt->shape[0];
-
     u32 K = ot->size / fo;
-    u32 L = fi - (fi & ~3);
 
 #if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
