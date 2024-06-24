@@ -18,8 +18,12 @@ uint32_t pcg32_random_r(pcg32_random_t* rng)
 
 static pcg32_random_t RNG = { 0x853c49e6748fea9bULL, 0xda3e39cb94b95bdbULL };
 
+u32 zm_randint() {
+    return pcg32_random_r(&RNG);
+}
+
 f32 zm_rand() {
-    return (f32)pcg32_random_r(&RNG) / (f32)UINT32_MAX;
+    return (f32)zm_randint() / (f32)UINT32_MAX;
 }
 
 f32 zm_randn() {

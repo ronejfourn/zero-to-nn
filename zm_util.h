@@ -2,6 +2,8 @@
 
 #include "zm_types.h"
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
 
 #if ZM_TRACE_ENABLE
 #define ZM_TRACE_FMT "%s:%d: %s"
@@ -14,6 +16,8 @@
 
 #define zm_malloc(_SIZE) _zm_malloc(_SIZE, __FILE__, __LINE__)
 void *_zm_malloc(u32 size, const char *file, u32 line);
+
+void *zm_alignptr16(void *p);
 
 #define zm_free(_PTR) _zm_free(_PTR, __FILE__, __LINE__)
 void _zm_free(void *ptr, const char *file, u32 line);

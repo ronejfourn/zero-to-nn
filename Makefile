@@ -1,5 +1,8 @@
-a.out: *.c *.h ./layers/* ./loss/*
-	gcc *.c layers/*.c loss/*.c -lm -Wall -Wpedantic -g -DZM_TRACE_ENABLE=0
+hfiles := *.h **/*.h
+cfiles := *.c **/*.c
+
+a.out: $(cfiles) $(hfiles)
+	gcc $(cfiles) -O3 -march=native -ffast-math -lm -fopenmp
 
 run: a.out
 	./a.out
