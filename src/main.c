@@ -1,8 +1,8 @@
-#include "zm_util.h"
-#include "zm_loss.h"
-#include "zm_layers.h"
-#include "zm_random.h"
-#include "zm_optimizers.h"
+#include "znn_util.h"
+#include "znn_loss.h"
+#include "znn_layers.h"
+#include "znn_random.h"
+#include "znn_optimizers.h"
 
 #define EPOCHS 5
 #define BATCH_SIZE 64
@@ -13,8 +13,8 @@ u32 tou32(u8 *buf) {
 }
 
 typedef struct {
-    zm_tensor data;
-    zm_tensor label;
+    znn_tensor data;
+    znn_tensor label;
     u32 i;
 } dataset;
 
@@ -22,12 +22,12 @@ void new_epoch(dataset *d) {
     d->i = 0;
 }
 
-bool get_batch(dataset *d, zm_tensor *X, zm_tensor *Y) {
+bool get_batch(dataset *d, znn_tensor *X, znn_tensor *Y) {
     if (d->i + BATCH_SIZE > d->data.shape[0]) return false;
-    zm_tensor_view x = zm_tensor_get_range(&d->data, d->i, d->i + BATCH_SIZE);
-    zm_tensor_view y = zm_tensor_get_range(&d->label, d->i, d->i + BATCH_SIZE);
-    *X = zm_tensor_from_view(&x);
-    *Y = zm_tensor_from_view(&y);
+    znn_tensor_view x = znn_tensor_get_range(&d->data, d->i, d->i + BATCH_SIZE);
+    znn_tensor_view y = znn_tensor_get_range(&d->label, d->i, d->i + BATCH_SIZE);
+    *X = znn_tensor_from_view(&x);
+    *Y = znn_tensor_from_view(&y);
     X->shape[0] = BATCH_SIZE;
     Y->shape[0] = BATCH_SIZE;
     d->i += BATCH_SIZE;
@@ -56,8 +56,8 @@ dataset load_mnist(const char *ipath, const char *lpath) {
     p = fread(buf, 1, 4, ifptr);
 
     dataset d = {0};
-    d.data = zm_tensor_create(icount, 28, 28);
-    d.label = zm_tensor_zeros(icount, 10);
+    d.data = znn_tensor_create(icount, 28, 28);
+    d.label = znn_tensor_zeros(icount, 10);
 
     u8 buf2[28*28];
     for (u32 i = 0; i < icount; i ++) {
@@ -88,76 +88,76 @@ bool check(f32 *p, f32 *y) {
 }
 
 int main() {
-    dataset train = load_mnist("./res/train-images.idx3-ubyte", "./res/train-labels.idx1-ubyte");
-    dataset test = load_mnist("./res/t10k-images.idx3-ubyte", "./res/t10k-labels.idx1-ubyte");
-    
+    dataset train = load_mnist("train-images.idx3-ubyte", "train-labels.idx1-ubyte");
+    dataset test = load_mnist("t10k-images.idx3-ubyte", "t10k-labels.idx1-ubyte");
+
 #if 0
 
     FILE *gnuplot = popen("gnuplot", "w");
     if (!gnuplot) return 1;
-    
+
     fprintf(gnuplot, "plot '-' u 1:2:3 w image \n");
-    
+
     for (int i = 0; i < 28; i++)
         for (int j = 0; j < 28; j++) {
             fprintf(gnuplot, "%d %d %f\n", j + 1, i + 1, train.data.data[i * 28 + j]);
             fprintf(stdout, "%d %d %f\n", j + 1, i + 1, train.data.data[i * 28 + j]);
         }
-    
+
     fprintf(gnuplot, "e\n");
     fflush(gnuplot);
     getc(stdin);
 #endif
-    
-    zm_layer l[] = {
-        zm_layer_flatten(),
-        zm_layer_linear(28*28, 512),
-        zm_layer_ReLU(),
-        zm_layer_linear(512, 512),
-        zm_layer_ReLU(),
-        zm_layer_linear(512, 10),
+
+    znn_layer l[] = {
+        znn_layer_flatten(),
+        znn_layer_linear(28*28, 512),
+        znn_layer_ReLU(),
+        znn_layer_linear(512, 512),
+        znn_layer_ReLU(),
+        znn_layer_linear(512, 10),
     };
-    
-    zm_sequential s = zm_sequential_create(l, zm_arraylen(l));
-    zm_loss mse = zm_loss_mse();
-    zm_optimizer sgd = zm_optimizer_SGD(s.parameters, s.n_params, LEARNING_RATE);
-    
-    zm_tensor x, y;
+
+    znn_sequential s = znn_sequential_create(l, znn_arraylen(l));
+    znn_loss mse = znn_loss_mse();
+    znn_optimizer sgd = znn_optimizer_SGD(s.parameters, s.n_params, LEARNING_RATE);
+
+    znn_tensor x, y;
     for (u32 epoch = 0; epoch < EPOCHS; epoch++) {
         new_epoch(&train);
         new_epoch(&test);
-    
+
         printf("   Epoch %d\n", epoch + 1);
         printf("----------------------------\n");
         for (u32 batch = 0; get_batch(&train, &x, &y); batch++) {
-            zm_tensor *pred = zm_sequential_forward(&s, &x);
-            zm_tensor *loss = zm_loss_calc(&mse, pred, &y);
-    
-            zm_tensor_backward(loss);
-            zm_optimizer_step(&sgd);
-            zm_optimizer_zero_grad(&sgd);
-    
+            znn_tensor *pred = znn_sequential_forward(&s, &x);
+            znn_tensor *loss = znn_loss_calc(&mse, pred, &y);
+
+            znn_tensor_backward(loss);
+            znn_optimizer_step(&sgd);
+            znn_optimizer_zero_grad(&sgd);
+
             if (batch % 100 == 0) {
-                printf("[%5d/%5d] loss: %f\n", 
-                        batch * BATCH_SIZE + BATCH_SIZE, train.data.shape[0], 
+                printf("[%5d/%5d] loss: %f\n",
+                        batch * BATCH_SIZE + BATCH_SIZE, train.data.shape[0],
                         loss->data[0]);
             }
-            zm_tensor_destroy(x);
-            zm_tensor_destroy(y);
+            znn_tensor_destroy(x);
+            znn_tensor_destroy(y);
         }
-    
+
         f32 test_loss = 0, correct = 0, count = 0;
         while (get_batch(&test, &x, &y)) {
-            zm_tensor *pred = zm_sequential_forward(&s, &x);
-            zm_tensor *loss = zm_loss_calc(&mse, pred, &y);
+            znn_tensor *pred = znn_sequential_forward(&s, &x);
+            znn_tensor *loss = znn_loss_calc(&mse, pred, &y);
             test_loss += loss->data[0];
             correct += check(pred->data, y.data);
             count ++;
         }
-            
+
         printf("accuracy: %5.3f%% avg. loss: %f\n", correct / (BATCH_SIZE * count) * 100, test_loss / count);
     }
-    
-    zm_sequential_destroy(s);
+
+    znn_sequential_destroy(s);
     return 0;
 }

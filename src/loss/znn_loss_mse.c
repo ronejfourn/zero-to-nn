@@ -1,10 +1,10 @@
-#include "../zm_loss.h"
-#include "../zm_util.h"
+#include "../znn_loss.h"
+#include "../znn_util.h"
 
-ZM_TENSOR_BACKWARD_FXN(zm_loss_backward_mse) {
-    zm_tensor **prev = this->prev;
-    zm_tensor *input = prev[0];
-    zm_tensor *target = prev[1];
+ZNN_TENSOR_BACKWARD_FXN(znn_loss_backward_mse) {
+    znn_tensor **prev = this->prev;
+    znn_tensor *input = prev[0];
+    znn_tensor *target = prev[1];
     if (!input->grad) return;
 
     u32 N = input->step[0];
@@ -17,12 +17,12 @@ ZM_TENSOR_BACKWARD_FXN(zm_loss_backward_mse) {
     }
 }
 
-ZM_LOSS_FXN(zm_loss_fxn_mse) {
+ZNN_LOSS_FXN(znn_loss_fxn_mse) {
     if (this->input != input) {
         this->input = input;
-        zm_tensor_set_prev(&this->output, input, target);
+        znn_tensor_set_prev(&this->output, input, target);
     }
-    
+
     assert(target->dim == input->dim);
     for (u32 i = 0; i < target->dim; i ++)
         assert(target->shape[i] == input->shape[i]);
@@ -39,18 +39,18 @@ ZM_LOSS_FXN(zm_loss_fxn_mse) {
     }
 }
 
-ZM_LOSS_DESTROY_FXN(zm_loss_destroy_mse) {
-    zm_tensor_destroy(this.output);
+ZNN_LOSS_DESTROY_FXN(znn_loss_destroy_mse) {
+    znn_tensor_destroy(this.output);
 }
 
-zm_loss _zm_loss_mse(char *file, u32 line) {
-    zm_trace(file, line);
-    zm_loss l = {0};
-    l.fn = zm_loss_fxn_mse;
-    l.destroy = zm_loss_destroy_mse;
+znn_loss _znn_loss_mse(char *file, u32 line) {
+    znn_trace(file, line);
+    znn_loss l = {0};
+    l.fn = znn_loss_fxn_mse;
+    l.destroy = znn_loss_destroy_mse;
 
-    l.output = zm_tensor_create(1);
-    l.output.backward = zm_loss_backward_mse;
+    l.output = znn_tensor_create(1);
+    l.output.backward = znn_loss_backward_mse;
 
     return l;
 }

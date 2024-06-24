@@ -1,8 +1,8 @@
 #include "common.h"
 
-ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
+ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_softmax) {
     uintptr_t dim = (uintptr_t)this->backward_data;
-    zm_tensor *prev = this->prev;
+    znn_tensor *prev = this->prev;
     u32 I = dim ? prev->step[dim - 1] : prev->size;
     u32 J = prev->step[dim];
     u32 K = prev->shape[dim] * J;
@@ -18,22 +18,22 @@ ZM_TENSOR_BACKWARD_FXN(zm_layer_backward_softmax) {
     }
 }
 
-ZM_LAYER_INIT_FXN(zm_layer_init_softmax) {
+ZNN_LAYER_INIT_FXN(znn_layer_init_softmax) {
     u32 dim = (u32)(uintptr_t)this->parameters;
     assert(dim < input->dim);
-    this->output = zm_tensor_create_from_shape(
-            input->dim, zm_copy(input->shape, input->dim * 4));
-    this->output.backward = input->grad ? 
-        zm_layer_backward_softmax : NULL;
+    this->output = znn_tensor_create_from_shape(
+            input->dim, znn_copy(input->shape, input->dim * 4));
+    this->output.backward = input->grad ?
+        znn_layer_backward_softmax : NULL;
     this->output.backward_data = (void *)(uintptr_t)dim;
-    zm_tensor_require_grad(&this->output);
-    zm_tensor_set_prev(&this->output, input);
+    znn_tensor_require_grad(&this->output);
+    znn_tensor_set_prev(&this->output, input);
 }
 
-ZM_LAYER_FORWARD_FXN(zm_layer_forward_softmax) {
+ZNN_LAYER_FORWARD_FXN(znn_layer_forward_softmax) {
     u32 dim = (u32)(uintptr_t)this->parameters;
-    zm_tensor *input = this->input;
-    zm_tensor *output = &this->output;
+    znn_tensor *input = this->input;
+    znn_tensor *output = &this->output;
 
     u32 I = dim ? input->step[dim - 1] : input->size;
     u32 J = input->step[dim];
@@ -53,12 +53,12 @@ ZM_LAYER_FORWARD_FXN(zm_layer_forward_softmax) {
     }
 }
 
-zm_layer _zm_layer_softmax(u32 dim, char *file, u32 line) {
-    zm_trace(file, line);
+znn_layer _znn_layer_softmax(u32 dim, char *file, u32 line) {
+    znn_trace(file, line);
 
-    zm_layer l = {0};
-    l.init = zm_layer_init_softmax;
-    l.forward = zm_layer_forward_softmax;
+    znn_layer l = {0};
+    l.init = znn_layer_init_softmax;
+    l.forward = znn_layer_forward_softmax;
     l.parameters = (void*)(uintptr_t)dim;
 
     return l;

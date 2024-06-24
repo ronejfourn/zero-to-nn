@@ -1,4 +1,4 @@
-#include "zm_random.h"
+#include "znn_random.h"
 
 // *Really* minimal PCG32 code / (c) 2014 M.E. O'Neill / pcg-random.org
 // Licensed under Apache License 2.0 (NO WARRANTY, etc. see website)
@@ -18,18 +18,18 @@ uint32_t pcg32_random_r(pcg32_random_t* rng)
 
 static pcg32_random_t RNG = { 0x853c49e6748fea9bULL, 0xda3e39cb94b95bdbULL };
 
-u32 zm_randint() {
+u32 znn_randint() {
     return pcg32_random_r(&RNG);
 }
 
-f32 zm_rand() {
-    return (f32)zm_randint() / (f32)UINT32_MAX;
+f32 znn_rand() {
+    return (f32)znn_randint() / (f32)UINT32_MAX;
 }
 
-f32 zm_randn() {
-    return zm_rand() * 2 - 1;
+f32 znn_randn() {
+    return znn_rand() * 2 - 1;
 }
 
-f32 zm_randr(f32 a, f32 b) {
-    return zm_rand() * (b - a) + a;
+f32 znn_randr(f32 a, f32 b) {
+    return znn_rand() * (b - a) + a;
 }
