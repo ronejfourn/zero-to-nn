@@ -23,13 +23,10 @@ znn_tensor znn_tensor_from_view(znn_tensor_view *v) {
 
     t.is_view = false;
     t.dim = v->dim;
+    t.size = v->size;
     t.shape = znn_copy(v->shape, t.dim * 4);
     t.step = znn_copy(v->step, t.dim * 4);
-    t.size = v->size;
-
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
-    memcpy(t.data, v->data, t.size * 4);
+    t.data = znn_copy(v->data, t.size * 4);
 
     return t;
 }
@@ -64,7 +61,7 @@ znn_tensor_view _znn_tensor_get_range(znn_tensor_view *t, u32 a, u32 b) {
     return v;
 }
 
-znn_tensor _znn_tensor_init_v(va_list va1) {
+znn_tensor _znn_tensor_init_v(va_list va1, bool alloc) {
     va_list va2;
     va_copy(va2, va1);
     assert(va_arg(va1, u32) != -1);
@@ -83,6 +80,8 @@ znn_tensor _znn_tensor_init_v(va_list va1) {
         t.step[t.dim - i - 1] = t.size,
         t.size *= t.shape[t.dim - i - 1];
 
+    t.data = alloc ? znn_malloc(t.size * 4) : NULL;
+
     va_end(va1);
     va_end(va2);
     return t;
@@ -91,10 +90,7 @@ znn_tensor _znn_tensor_init_v(va_list va1) {
 znn_tensor _znn_tensor_create(const char *file, u32 line, ...) {
     znn_trace(file, line);
     va_list va; va_start(va, line);
-    znn_tensor t = _znn_tensor_init_v(va);
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
-    return t;
+    return _znn_tensor_init_v(va, true);
 }
 
 znn_tensor _znn_tensor_create_from_data(const char *file, u32 line, void *data, ...) {
@@ -102,16 +98,8 @@ znn_tensor _znn_tensor_create_from_data(const char *file, u32 line, void *data, 
     assert(data);
 
     va_list va; va_start(va, data);
-    znn_tensor t = _znn_tensor_init_v(va);
-    if (((uintptr_t)data & 15) == 0) {
-        t.data_base = data;
-        t.data = data;
-    } else {
-        t.data_base = znn_malloc(t.size * 4 + 16);
-        t.data = znn_alignptr16(t.data_base);
-        memcpy(t.data, data, t.size * 4);
-        znn_free(data);
-    }
+    znn_tensor t = _znn_tensor_init_v(va, false);
+    t.data = data;
     return t;
 }
 
@@ -130,15 +118,14 @@ znn_tensor _znn_tensor_create_from_shape(const char *file, u32 line, u32 dim, u3
         t.step[t.dim - i - 1] = t.size,
         t.size *= shape[t.dim - i - 1];
 
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
+    t.data = znn_malloc(t.size * 4);
     return t;
 }
 
 void _znn_tensor_destroy(const char *file, u32 line, znn_tensor t) {
     znn_trace(file, line);
-    znn_free(t.grad_base);
-    znn_free(t.data_base);
+    znn_free(t.grad);
+    znn_free(t.data);
     znn_free(t.step);
     znn_free(t.shape);
     if (t.n_prev > 1) znn_free(t.prev);
@@ -147,9 +134,7 @@ void _znn_tensor_destroy(const char *file, u32 line, znn_tensor t) {
 znn_tensor _znn_tensor_fill(f32 val, const char *file, u32 line, ...) {
     znn_trace(file, line);
     va_list va; va_start(va, line);
-    znn_tensor t = _znn_tensor_init_v(va);
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
+    znn_tensor t = _znn_tensor_init_v(va, true);
     for (u32 i = 0; i < t.size; i ++) t.data[i] = val;
     return t;
 }
@@ -157,9 +142,7 @@ znn_tensor _znn_tensor_fill(f32 val, const char *file, u32 line, ...) {
 znn_tensor _znn_tensor_rand(const char *file, u32 line, ...) {
     znn_trace(file, line);
     va_list va; va_start(va, line);
-    znn_tensor t = _znn_tensor_init_v(va);
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
+    znn_tensor t = _znn_tensor_init_v(va, true);
     for (u32 i = 0; i < t.size; i ++) t.data[i] = znn_rand();
     return t;
 }
@@ -167,9 +150,7 @@ znn_tensor _znn_tensor_rand(const char *file, u32 line, ...) {
 znn_tensor _znn_tensor_randn(const char *file, u32 line, ...) {
     znn_trace(file, line);
     va_list va; va_start(va, line);
-    znn_tensor t = _znn_tensor_init_v(va);
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
+    znn_tensor t = _znn_tensor_init_v(va, true);
     for (u32 i = 0; i < t.size; i ++) t.data[i] = znn_randn();
     return t;
 }
@@ -177,19 +158,14 @@ znn_tensor _znn_tensor_randn(const char *file, u32 line, ...) {
 znn_tensor _znn_tensor_randr(const char *file, u32 line, f32 a, f32 b,...) {
     znn_trace(file, line);
     va_list va; va_start(va, b);
-    znn_tensor t = _znn_tensor_init_v(va);
-    t.data_base = znn_malloc(t.size * 4 + 16);
-    t.data = znn_alignptr16(t.data_base);
+    znn_tensor t = _znn_tensor_init_v(va, true);
     for (u32 i = 0; i < t.size; i ++) t.data[i] = znn_randr(a, b);
     return t;
 }
 
 void _znn_tensor_require_grad(char* file, u32 line, znn_tensor *t) {
-    if (!t->grad) {
-        znn_trace(file, line);
-        t->grad_base = znn_malloc(t->size * 4 + 16);
-        t->grad = znn_alignptr16(t->grad_base);
-    }
+    znn_trace(file, line);
+    if (!t->grad) t->grad = znn_malloc(t->size * 4);
 }
 
 void znn_tensor_backward(znn_tensor *this) { // TODO: topological sort

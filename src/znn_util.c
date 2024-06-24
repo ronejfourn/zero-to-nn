@@ -15,10 +15,6 @@ void *_znn_malloc(u32 size, const char *file, u32 line) {
     return d;
 }
 
-void *znn_alignptr16(void *p) {
-	return (void *)(((uintptr_t)p & ~15) + 16);
-}
-
 void _znn_free(void *ptr, const char *file, u32 line) {
     free(ptr);
 #if znn_TRACE_ENABLE

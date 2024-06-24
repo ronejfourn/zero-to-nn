@@ -26,14 +26,8 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_n) {
         f32 *wg = prev[1]->grad, *bg = prev[2]->grad;
         for (u32 i = 0; i < fo; i++, wg += fi) {
             bg[i] += og[i];
-            for (u32 j = 0; j < L; j ++)
-                wg[j + 0] += iv[j + 0] * og[i];
-            for (u32 j = L; j < fi; j += 4) {
-                wg[j + 0] += iv[j + 0] * og[i];
-                wg[j + 1] += iv[j + 1] * og[i];
-                wg[j + 2] += iv[j + 2] * og[i];
-                wg[j + 3] += iv[j + 3] * og[i];
-            }
+            for (u32 j = 0; j < fi; j ++)
+                wg[j] += iv[j] * og[i];
         }
     }
 }
@@ -57,19 +51,9 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_y) {
         f32 *wv = prev[1]->data, *wg = prev[1]->grad;
         for (u32 i = 0; i < fo; i ++, wv += fi, wg += fi) {
             bg[i] += og[i];
-            for (u32 j = 0; j < L; j ++) {
-                wg[j + 0] += iv[j + 0] * og[i];
-                ig[j + 0] += wv[j + 0] * og[i];
-            }
-            for (u32 j = L; j < fi; j += 4) {
-                wg[j + 0] += iv[j + 0] * og[i];
-                wg[j + 1] += iv[j + 1] * og[i];
-                wg[j + 2] += iv[j + 2] * og[i];
-                wg[j + 3] += iv[j + 3] * og[i];
-                ig[j + 0] += wv[j + 0] * og[i];
-                ig[j + 1] += wv[j + 1] * og[i];
-                ig[j + 2] += wv[j + 2] * og[i];
-                ig[j + 3] += wv[j + 3] * og[i];
+            for (u32 j = 0; j < fi; j ++) {
+                wg[j] += iv[j] * og[i];
+                ig[j] += wv[j] * og[i];
             }
         }
     }
@@ -112,14 +96,8 @@ ZNN_LAYER_FORWARD_FXN(znn_layer_forward_linear) {
         f32 *wv = wt->data, *bv = bt->data;
         for (u32 i = 0; i < fo; i ++, wv += fi) {
             ov[i] = bv[i];
-            for (u32 j = 0; j < L; j ++)
-                ov[i] += wv[j + 0] * iv[j + 0];
-            for (u32 j = L; j < fi; j += 4) {
-                ov[i] += wv[j + 0] * iv[j + 0];
-                ov[i] += wv[j + 1] * iv[j + 1];
-                ov[i] += wv[j + 2] * iv[j + 2];
-                ov[i] += wv[j + 3] * iv[j + 3];
-            }
+            for (u32 j = 0; j < fi; j ++)
+                ov[i] += wv[j] * iv[j];
         }
     }
 }

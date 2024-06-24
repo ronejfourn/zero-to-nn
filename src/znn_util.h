@@ -17,8 +17,6 @@
 #define znn_malloc(_SIZE) _znn_malloc(_SIZE, __FILE__, __LINE__)
 void *_znn_malloc(u32 size, const char *file, u32 line);
 
-void *znn_alignptr16(void *p);
-
 #define znn_free(_PTR) _znn_free(_PTR, __FILE__, __LINE__)
 void _znn_free(void *ptr, const char *file, u32 line);
 

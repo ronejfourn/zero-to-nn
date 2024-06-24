@@ -24,8 +24,6 @@ typedef struct znn_tensor_view {
 
 typedef struct znn_tensor {
     ZNN_TENSOR_VIEW;
-    void *data_base;
-    void *grad_base;
     void *prev;
     u32 n_prev;
     void *backward_data;
