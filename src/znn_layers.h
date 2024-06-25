@@ -20,9 +20,9 @@ typedef struct znn_layer {
     u32 n_params;
     void *parameters;
     znn_tensor output;
-    znn_layer_init_fxn init;
-    znn_layer_forward_fxn forward;
-    znn_layer_destroy_fxn destroy;
+    ZNN_FXN(znn_layer_init_fxn) init;
+    ZNN_FXN(znn_layer_forward_fxn) forward;
+    ZNN_FXN(znn_layer_destroy_fxn) destroy;
 } znn_layer;
 
 typedef struct znn_sequential {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "znn_types.h"
+#include "znn_util.h"
 
 struct znn_tensor;
 
@@ -10,12 +11,12 @@ struct znn_tensor;
 typedef ZNN_TENSOR_BACKWARD_FXN((*znn_tensor_backward_fxn));
 
 #define ZNN_TENSOR_VIEW \
-    bool is_view;      \
-    u32 dim;           \
-    u32 *shape;        \
-    f32 *data;         \
-    f32 *grad;         \
-    u32 *step;         \
+    bool is_view;       \
+    u32 dim;            \
+    u32 *shape;         \
+    f32 *data;          \
+    f32 *grad;          \
+    u32 *step;          \
     u32 size
 
 typedef struct znn_tensor_view {
@@ -27,34 +28,25 @@ typedef struct znn_tensor {
     void *prev;
     u32 n_prev;
     void *backward_data;
-    znn_tensor_backward_fxn backward;
+    ZNN_FXN(znn_tensor_backward_fxn) backward;
 } znn_tensor;
 
 #undef ZNN_TENSOR_VIEW
 
-znn_tensor_view znn_tensor_as_tensor_view(znn_tensor *t);
-znn_tensor znn_tensor_view_as_tensor(znn_tensor_view *v);
-znn_tensor znn_tensor_from_view(znn_tensor_view *v);
-
 #define znn_tensor_divide(T, S) _znn_tensor_divide((znn_tensor_view *)(T), S)
 void _znn_tensor_divide(znn_tensor_view *t, f32 s);
 
-#define znn_tensor_one_hot(I, N) _znn_tensor_one_hot((znn_tensor_view *)(I), N, __FILE__, __LINE__)
-znn_tensor _znn_tensor_one_hot(znn_tensor_view *i, u32 num_classes, const char *file, u32 line);
-
-#define znn_tensor_get_view(T, ...) _znn_tensor_get_view((znn_tensor_view *)(T), __VA_ARGS__, -1)
-znn_tensor_view _znn_tensor_get_view(znn_tensor_view *t, ...);
-#define znn_tensor_get_range(T, A, B) _znn_tensor_get_range((znn_tensor_view *)(T), A, B)
-znn_tensor_view _znn_tensor_get_range(znn_tensor_view *t, u32 a, u32 b);
+#define znn_tensor_one_hot(I, N) _znn_tensor_one_hot(__FILE__, __LINE__, (znn_tensor_view *)(I), N)
+znn_tensor _znn_tensor_one_hot(const char *file, u32 line, znn_tensor_view *i, u32 num_classes);
 
 #define znn_tensor_create(...) _znn_tensor_create(__FILE__, __LINE__, __VA_ARGS__, -1)
 znn_tensor _znn_tensor_create(const char *file, u32 line, ...);
-#define znn_tensor_create_from_data(D, ...) _znn_tensor_create_from_data(__FILE__, __LINE__, D, __VA_ARGS__, -1)
-znn_tensor _znn_tensor_create_from_data(const char *file, u32 line, void *data, ...);
-#define znn_tensor_create_from_shape(D, S) _znn_tensor_create_from_shape(__FILE__, __LINE__, D, S)
-znn_tensor _znn_tensor_create_from_shape(const char *file, u32 line, u32 dim, u32 *shape);
-#define znn_tensor_destroy(T) _znn_tensor_destroy(__FILE__, __LINE__, T)
-void _znn_tensor_destroy(const char *file, u32 line, znn_tensor t);
+#define znn_tensor_from_data(D, ...) _znn_tensor_from_data(__FILE__, __LINE__, D, __VA_ARGS__, -1)
+znn_tensor _znn_tensor_from_data(const char *file, u32 line, void *data, ...);
+#define znn_tensor_from_shape(D, S) _znn_tensor_from_shape(__FILE__, __LINE__, D, S)
+znn_tensor _znn_tensor_from_shape(const char *file, u32 line, u32 dim, u32 *shape);
+#define znn_tensor_from_view(V) _znn_tensor_from_view(__FILE__, __LINE__, (znn_tensor_from_view *)(V))
+znn_tensor _znn_tensor_from_view(const char *file, u32 line, znn_tensor_view *v);
 
 #define znn_tensor_fill(V, ...) _znn_tensor_fill(V, __FILE__, __LINE__, __VA_ARGS__, -1)
 znn_tensor _znn_tensor_fill(f32 val, const char *file, u32 line, ...);
@@ -68,17 +60,36 @@ znn_tensor _znn_tensor_randn(const char *file, u32 line, ...);
 #define znn_tensor_randr(A, B, ...) _znn_tensor_randr(__FILE__, __LINE__, A, B, __VA_ARGS__, -1)
 znn_tensor _znn_tensor_randr(const char *file, u32 line, f32 a, f32 b,...);
 
+#define znn_tensor_destroy(T) _znn_tensor_destroy(__FILE__, __LINE__, T)
+void _znn_tensor_destroy(const char *file, u32 line, znn_tensor t);
+
+#define znn_tensor_get(T, ...) _znn_tensor_get((znn_tensor_view *)(T), ##__VA_ARGS__, -1)
+znn_tensor_view _znn_tensor_get(znn_tensor_view *t, ...);
+
 #define znn_tensor_require_grad(T) _znn_tensor_require_grad(__FILE__, __LINE__, T)
 void _znn_tensor_require_grad(char* file, u32 line, znn_tensor *t);
 
 void znn_tensor_backward(znn_tensor *this);
 
+typedef enum  {
+    _ZNN_TENSOR_PRINT_END,
+
+    ZNN_TENSOR_PRINT_DATA,
+    ZNN_TENSOR_PRINT_GRAD,
+    ZNN_TENSOR_PRINT_SHAPE,
+
+    ZNN_TENSOR_PRINT_NO_DATA,
+    ZNN_TENSOR_PRINT_NO_GRAD,
+    ZNN_TENSOR_PRINT_NO_SHAPE,
+} znn_tensor_print_opts;
+
+#define znn_tensor_print(V, ...) _znn_tensor_print((const znn_tensor_view *)(V), ##__VA_ARGS__, _ZNN_TENSOR_PRINT_END)
+void _znn_tensor_print(const znn_tensor_view *v, ...);
+
 #define znn_tensor_print_data(T) _znn_tensor_print_data((const znn_tensor_view *)(T))
 void _znn_tensor_print_data(const znn_tensor_view *t);
 #define znn_tensor_print_grad(T) _znn_tensor_print_grad((const znn_tensor_view *)(T))
 void _znn_tensor_print_grad(const znn_tensor_view *t);
-#define znn_tensor_print_shape(T) _znn_tensor_print_grad((const znn_tensor_view *)(T))
-void _znn_tensor_print_shape(const znn_tensor_view *t);
 
 #define znn_tensor_set_prev(T, ...) _znn_tensor_set_prev(__FILE__, __LINE__, T, __VA_ARGS__, NULL)
 void _znn_tensor_set_prev(char *file, u32 line, znn_tensor *this, ...);

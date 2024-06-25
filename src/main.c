@@ -6,8 +6,8 @@
 #include "znn_optimizers.h"
 
 #define EPOCHS 5
-#define BATCH_SIZE 64
-#define LEARNING_RATE 1e-3
+#define BATCH_SIZE 16
+#define LEARNING_RATE 5e-3
 
 bool check(f32 *p, f32 *y) {
     u32 s = 0;
@@ -58,14 +58,14 @@ int main() {
     };
 
     znn_sequential s = znn_sequential_create(l, znn_arraylen(l));
-    znn_loss mse = znn_loss_mse();
+    znn_loss mse = znn_loss_MSE();
     znn_optimizer sgd = znn_optimizer_SGD(s.parameters, s.n_params, LEARNING_RATE);
 
     znn_tensor x, y;
     for (u32 epoch = 0; epoch < EPOCHS; epoch++) {
         printf("   Epoch %d\n", epoch + 1);
         printf("----------------------------\n");
-        for (u32 batch = 0; znn_dataset_get_batch(&train, BATCH_SIZE, &x, &y); batch++) {
+        for (u32 batch = 1; znn_dataset_get_batch(&train, BATCH_SIZE, &x, &y); batch++) {
             znn_tensor yoh = znn_tensor_one_hot(&y, 10);
             znn_tensor_divide(&x, 255);
 
@@ -78,10 +78,8 @@ int main() {
             znn_optimizer_zero_grad(&sgd);
 
             if (batch % 100 == 0)
-                printf("[%5d/%5d] loss: %f\n", 
-                        batch * BATCH_SIZE + BATCH_SIZE,
-                        train.data.shape[0],
-                        loss->data[0]);
+                printf("[%5d/%5d] loss: %f\n", batch * BATCH_SIZE,
+                        train.data.shape[0], loss->data[0]);
 
             znn_tensor_destroy(x);
             znn_tensor_destroy(y);

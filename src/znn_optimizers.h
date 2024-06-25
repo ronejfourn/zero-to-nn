@@ -13,7 +13,7 @@ typedef struct znn_optimizer {
     znn_tensor **parameters;
     u32 n_params;
     f32 learning_rate;
-    znn_optimizer_step_fxn step;
+    ZNN_FXN(znn_optimizer_step_fxn) step;
 } znn_optimizer;
 
 znn_optimizer znn_optimizer_SGD(znn_tensor **params, u32 n_params, f32 learning_rate);

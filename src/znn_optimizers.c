@@ -7,5 +7,5 @@ void znn_optimizer_zero_grad(znn_optimizer *o) {
 }
 
 void znn_optimizer_step(znn_optimizer *o) {
-    o->step(o);
+    o->step.fn(o);
 }

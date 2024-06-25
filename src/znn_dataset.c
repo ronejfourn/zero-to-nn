@@ -12,7 +12,7 @@ enum {
     ZNN_IDX_DOUBLE = 0x0E,
 };
 
-static inline u32 idx_sizeof(u8 t) {
+static inline u32 _znn__idx_sizeof(u8 t) {
     switch (t) {
     case ZNN_IDX_UBYTE  : return 1;
     case ZNN_IDX_BYTE   : return 1;
@@ -24,14 +24,14 @@ static inline u32 idx_sizeof(u8 t) {
     }
 }
 
-static inline u32 idx_read_u32(FILE *f) {
+static inline u32 _znn__idx_read_u32(FILE *f) {
     u32 h;
     FREAD(&h, 4, 1, f);
     return znn_correct_endian32(h);
 }
 
-static inline u32 idx_read_header(FILE *f, u8 *t) {
-    u32 h = idx_read_u32(f);
+static inline u32 _znn__idx_read_hdr(FILE *f, u8 *t) {
+    u32 h = _znn__idx_read_u32(f);
     assert((h & 0xffff0000) == 0x0);
 
     *t = (h & 0xff00) >> 8;
@@ -40,15 +40,15 @@ static inline u32 idx_read_header(FILE *f, u8 *t) {
     return h & 0xff;
 }
 
-znn_dataset_idx _znn_dataset_load_idx_file(const char *path) {
+static znn_dataset_idx _znn__idx_load_file(const char *path) {
     FILE *fptr = fopen(path, "rb");
     znn_dataset_idx d = {0};
-    d.dim = idx_read_header(fptr, &d.type);
+    d.dim = _znn__idx_read_hdr(fptr, &d.type);
     d.shape = znn_malloc(d.dim * 4);
 
     d.size = 1;
     for (u32 i = 0; i < d.dim; i ++) {
-        d.shape[i] = idx_read_u32(fptr);
+        d.shape[i] = _znn__idx_read_u32(fptr);
         d.size *= d.shape[i];
     }
 
@@ -62,26 +62,13 @@ znn_dataset_idx _znn_dataset_load_idx_file(const char *path) {
     return d;
 }
 
-znn_dataset znn_dataset_load_idx(const char *dpath, const char *lpath) {
-    znn_dataset d = {0};
-    d.data = _znn_dataset_load_idx_file(dpath);
-    d.label = _znn_dataset_load_idx_file(lpath);
-    assert(d.data.shape[0] == d.label.shape[0]);
-    return d;
-}
-
-void _znn_dataset_destroy_idx(znn_dataset_idx d) {
+static void _znn__idx_destroy(znn_dataset_idx d) {
     znn_free(d.shape);
     fclose(d.fptr);
 }
 
-void znn_dataset_destroy(znn_dataset d) {
-    _znn_dataset_destroy_idx(d.data);
-    _znn_dataset_destroy_idx(d.label);
-}
-
-bool _znn_dataset_get_batch_idx(znn_dataset_idx *d, u32 bs, znn_tensor *x) {
-    u32 S = d->size * idx_sizeof(d->type);
+static bool _znn__idx_get_batch(znn_dataset_idx *d, u32 bs, znn_tensor *x) {
+    u32 S = d->size * _znn__idx_sizeof(d->type);
 
     if (ftell(d->fptr) + bs * S > d->end) {
         fseek(d->fptr, d->base, SEEK_SET);
@@ -92,7 +79,7 @@ bool _znn_dataset_get_batch_idx(znn_dataset_idx *d, u32 bs, znn_tensor *x) {
     u32 L = S - ((S - 1) & ~7);
 
     shape[0] = bs;
-    *x = znn_tensor_create_from_shape(d->dim, shape);
+    *x = znn_tensor_from_shape(d->dim, shape);
 
     // TODO: proper support for all data types
     for (u32 i = 0; i < bs; i ++) {
@@ -143,9 +130,25 @@ bool _znn_dataset_get_batch_idx(znn_dataset_idx *d, u32 bs, znn_tensor *x) {
     return true;
 }
 
-bool znn_dataset_get_batch(znn_dataset *d, u32 bs, znn_tensor *x, znn_tensor *y) {
-    bool a = _znn_dataset_get_batch_idx(&d->data, bs, x);
-    bool b = _znn_dataset_get_batch_idx(&d->label, bs, y);
+znn_dataset _znn_dataset_load_idx(const char *dpath, const char *lpath, const char *file, u32 line) {
+    znn_trace(file, line);
+    znn_dataset d = {0};
+    d.data = _znn__idx_load_file(dpath);
+    d.label = _znn__idx_load_file(lpath);
+    assert(d.data.shape[0] == d.label.shape[0]);
+    return d;
+}
+
+void _znn_dataset_destroy(znn_dataset d, const char *file, u32 line) {
+    znn_trace(file, line);
+    _znn__idx_destroy(d.data);
+    _znn__idx_destroy(d.label);
+}
+
+bool _znn_dataset_get_batch(znn_dataset *d, u32 bs, znn_tensor *x, znn_tensor *y, const char *file, u32 line) {
+    znn_trace(file, line);
+    bool a = _znn__idx_get_batch(&d->data, bs, x);
+    bool b = _znn__idx_get_batch(&d->label, bs, y);
     assert(a == b);
     return a;
 }

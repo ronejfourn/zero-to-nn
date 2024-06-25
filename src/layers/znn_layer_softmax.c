@@ -4,7 +4,7 @@
 #include <omp.h>
 #endif
 
-ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_softmax) {
+static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_softmax) {
     uintptr_t dim = (uintptr_t)this->backward_data;
     znn_tensor *prev = this->prev;
     u32 I = dim ? prev->step[dim - 1] : prev->size;
@@ -25,19 +25,19 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_softmax) {
     }
 }
 
-ZNN_LAYER_INIT_FXN(znn_layer_init_softmax) {
+static ZNN_LAYER_INIT_FXN(_znn__init_softmax) {
     u32 dim = (u32)(uintptr_t)this->parameters;
     assert(dim < input->dim);
-    this->output = znn_tensor_create_from_shape(
+    this->output = znn_tensor_from_shape(
             input->dim, znn_copy(input->shape, input->dim * 4));
-    this->output.backward = input->grad ?
-        znn_layer_backward_softmax : NULL;
+    if (input->grad)
+        ZNN_FXN_SET(this->output.backward, _znn__backward_softmax);
     this->output.backward_data = (void *)(uintptr_t)dim;
     znn_tensor_require_grad(&this->output);
     znn_tensor_set_prev(&this->output, input);
 }
 
-ZNN_LAYER_FORWARD_FXN(znn_layer_forward_softmax) {
+static ZNN_LAYER_FORWARD_FXN(_znn__forward_softmax) {
     u32 dim = (u32)(uintptr_t)this->parameters;
     znn_tensor *input = this->input;
     znn_tensor *output = &this->output;
@@ -63,12 +63,17 @@ ZNN_LAYER_FORWARD_FXN(znn_layer_forward_softmax) {
     }
 }
 
+static ZNN_LAYER_DESTROY_FXN(_znn__destroy_softmax) {
+    this->output.backward_data = NULL;
+}
+
 znn_layer _znn_layer_softmax(u32 dim, char *file, u32 line) {
     znn_trace(file, line);
 
     znn_layer l = {0};
-    l.init = znn_layer_init_softmax;
-    l.forward = znn_layer_forward_softmax;
+    ZNN_FXN_SET(l.init, _znn__init_softmax);
+    ZNN_FXN_SET(l.forward, _znn__forward_softmax);
+    ZNN_FXN_SET(l.destroy, _znn__destroy_softmax);
     l.parameters = (void*)(uintptr_t)dim;
 
     return l;

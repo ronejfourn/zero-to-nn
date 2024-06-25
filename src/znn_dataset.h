@@ -18,6 +18,9 @@ typedef struct znn_dataset {
     znn_dataset_idx label;
 } znn_dataset;
 
-znn_dataset znn_dataset_load_idx(const char *dpath, const char *lpath);
-void znn_dataset_destroy(znn_dataset d);
-bool znn_dataset_get_batch(znn_dataset *d, u32 batch_size, znn_tensor *x, znn_tensor *y);
+#define znn_dataset_load_idx(D, L) _znn_dataset_load_idx(D, L, __FILE__, __LINE__)
+znn_dataset _znn_dataset_load_idx(const char *dpath, const char *lpath, const char *file, u32 line);
+#define znn_dataset_destroy(D) _znn_dataset_destroy(D, __FILE__, __LINE__)
+void _znn_dataset_destroy(znn_dataset d, const char *file, u32 line);
+#define znn_dataset_get_batch(D, B, X, Y) _znn_dataset_get_batch(D, B, X, Y, __FILE__, __LINE__)
+bool _znn_dataset_get_batch(znn_dataset *d, u32 batch_size, znn_tensor *x, znn_tensor *y, const char *file, u32 line);

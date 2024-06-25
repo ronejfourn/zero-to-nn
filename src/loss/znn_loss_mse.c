@@ -5,7 +5,7 @@
 #include <omp.h>
 #endif
 
-ZNN_TENSOR_BACKWARD_FXN(znn_loss_backward_mse) {
+static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_MSE) {
     znn_tensor **prev = this->prev;
     znn_tensor *input = prev[0];
     znn_tensor *target = prev[1];
@@ -25,7 +25,7 @@ ZNN_TENSOR_BACKWARD_FXN(znn_loss_backward_mse) {
     }
 }
 
-ZNN_LOSS_FXN(znn_loss_fxn_mse) {
+static ZNN_LOSS_CALC_FXN(_znn__calc_MSE) {
     if (this->input != input) {
         this->input = input;
         znn_tensor_set_prev(&this->output, input, target);
@@ -51,18 +51,12 @@ ZNN_LOSS_FXN(znn_loss_fxn_mse) {
     this->output.data[0] = s / (N * input->shape[0]);
 }
 
-ZNN_LOSS_DESTROY_FXN(znn_loss_destroy_mse) {
-    znn_tensor_destroy(this.output);
-}
-
-znn_loss _znn_loss_mse(char *file, u32 line) {
+znn_loss _znn_loss_MSE(char *file, u32 line) {
     znn_trace(file, line);
     znn_loss l = {0};
-    l.fn = znn_loss_fxn_mse;
-    l.destroy = znn_loss_destroy_mse;
-
     l.output = znn_tensor_create(1);
-    l.output.backward = znn_loss_backward_mse;
+    ZNN_FXN_SET(l.calc, _znn__calc_MSE);
+    ZNN_FXN_SET(l.output.backward, _znn__backward_MSE);
 
     return l;
 }

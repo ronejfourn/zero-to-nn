@@ -17,16 +17,16 @@ SRCS := $(shell find $(SRC_DIRS) -name '*.c')
 OBJS := $(SRCS:%=$(OBJ_DIR)/%.o)
 
 $(TARGET_EXEC): $(OBJS)
-	@$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 $(OBJ_DIR)/%.c.o: %.c $(DATASET_PATH)
-	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -c $< -o $@
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(DATASET_PATH):
-	@mkdir -p $(dir $@)
+	mkdir -p $(dir $@)
 	curl -L https://storage.googleapis.com/cvdf-datasets/mnist/$(notdir $@).gz -o $@.gz
-	@gzip -d $@.gz
+	gzip -d $@.gz
 
 .PHONY: clean
 clean:

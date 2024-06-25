@@ -6,23 +6,16 @@ znn_tensor *znn_layer_forward(struct znn_layer *this, znn_tensor *input) {
     if (!this->input) {
         this->input = input;
         znn_tensor_destroy(this->output);
-        this->init(this, input);
+        this->init.fn(this, input);
     }
 
-    this->forward(this);
+    this->forward.fn(this);
     return &this->output;
-}
-
-znn_tensor *znn_sequential_forward(znn_sequential *s, znn_tensor *input) {
-    for (u32 i = 0; i < s->n_layers; i ++)
-        input = znn_layer_forward(s->layers + i, input);
-
-    return input;
 }
 
 void _znn_layer_destroy(struct znn_layer this, char *file, u32 line) {
     znn_trace(file, line);
-    if (this.destroy) this.destroy(&this);
+    if (this.destroy.fn) this.destroy.fn(&this);
     znn_tensor_destroy(this.output);
 }
 
@@ -37,6 +30,13 @@ znn_sequential _znn_sequential_create(znn_layer *layers, u32 count, char *file, 
         for (u32 j = 0; j < layers[i].n_params; j ++)
             s.parameters[k++] = (znn_tensor*)(layers[i].parameters) + j;
     return s;
+}
+
+znn_tensor *znn_sequential_forward(znn_sequential *s, znn_tensor *input) {
+    for (u32 i = 0; i < s->n_layers; i ++)
+        input = znn_layer_forward(s->layers + i, input);
+
+    return input;
 }
 
 void _znn_sequential_destroy(znn_sequential s, char *file, u32 line) {

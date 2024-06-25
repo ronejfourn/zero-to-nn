@@ -1,22 +1,22 @@
 #include "common.h"
 
-ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_flatten) {
+static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_flatten) {
 }
 
-ZNN_LAYER_INIT_FXN(znn_layer_init_flatten) {
-    this->output = znn_tensor_create_from_data(
+static ZNN_LAYER_INIT_FXN(_znn__init_flatten) {
+    this->output = znn_tensor_from_data(
             NULL, input->shape[0], input->step[0]);
-    this->output.backward = input->grad ?
-        znn_layer_backward_flatten : NULL;
+    if (input->grad) 
+        ZNN_FXN_SET(this->output.backward, _znn__backward_flatten);
     znn_tensor_set_prev(&this->output, input);
 }
 
-ZNN_LAYER_FORWARD_FXN(znn_layer_forward_flatten) {
+static ZNN_LAYER_FORWARD_FXN(_znn__forward_flatten) {
     this->output.data = this->input->data;
     this->output.grad = this->input->grad;
 }
 
-ZNN_LAYER_DESTROY_FXN(znn_layer_destroy_flatten) {
+static ZNN_LAYER_DESTROY_FXN(_znn__destroy_flatten) {
     this->output.data = NULL;
     this->output.grad = NULL;
 }
@@ -24,8 +24,8 @@ ZNN_LAYER_DESTROY_FXN(znn_layer_destroy_flatten) {
 znn_layer _znn_layer_flatten(char *file, u32 line) {
     znn_trace(file, line);
     znn_layer l = {0};
-    l.init = znn_layer_init_flatten;
-    l.forward = znn_layer_forward_flatten;
-    l.destroy = znn_layer_destroy_flatten;
+    ZNN_FXN_SET(l.init, _znn__init_flatten);
+    ZNN_FXN_SET(l.forward, _znn__forward_flatten);
+    ZNN_FXN_SET(l.destroy, _znn__destroy_flatten);
     return l;
 }

@@ -9,7 +9,7 @@ typedef struct {
     znn_tensor biases;
 } znn_layer_params_linear;
 
-ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_n) {
+static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_linear_n) {
     znn_tensor **prev = this->prev;
     u32 fi = prev[1]->shape[1];
     u32 fo = prev[1]->shape[0];
@@ -30,7 +30,7 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_n) {
     }
 }
 
-ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_y) {
+static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_linear_y) {
     znn_tensor **prev = this->prev;
     u32 fi = prev[1]->shape[1];
     u32 fo = prev[1]->shape[0];
@@ -55,7 +55,7 @@ ZNN_TENSOR_BACKWARD_FXN(znn_layer_backward_linear_y) {
     }
 }
 
-ZNN_LAYER_INIT_FXN(znn_layer_init_linear) {
+static ZNN_LAYER_INIT_FXN(_znn__init_linear) {
     znn_layer_params_linear *ld = this->parameters;
     znn_tensor *wt = &ld->weights;
     assert(input->shape[input->dim - 1] == wt->shape[1]);
@@ -63,14 +63,16 @@ ZNN_LAYER_INIT_FXN(znn_layer_init_linear) {
     u32 *shape = znn_copy(input->shape, input->dim * 4);
     shape[input->dim - 1] = wt->shape[0];
 
-    this->output = znn_tensor_create_from_shape(input->dim, shape);
-    this->output.backward = input->grad ?
-        znn_layer_backward_linear_y : znn_layer_backward_linear_n;
+    this->output = znn_tensor_from_shape(input->dim, shape);
+    if (input->grad)
+        ZNN_FXN_SET(this->output.backward, _znn__backward_linear_y);
+    else
+        ZNN_FXN_SET(this->output.backward, _znn__backward_linear_n);
     znn_tensor_require_grad(&this->output);
     znn_tensor_set_prev(&this->output, input, &ld->weights, &ld->biases);
 }
 
-ZNN_LAYER_FORWARD_FXN(znn_layer_forward_linear) {
+static ZNN_LAYER_FORWARD_FXN(_znn__forward_linear) {
     znn_layer_params_linear *ld = this->parameters;
     znn_tensor *wt = &ld->weights;
     znn_tensor *bt = &ld->biases;
@@ -96,7 +98,7 @@ ZNN_LAYER_FORWARD_FXN(znn_layer_forward_linear) {
     }
 }
 
-ZNN_LAYER_DESTROY_FXN(znn_layer_destroy_linear) {
+static ZNN_LAYER_DESTROY_FXN(_znn__destroy_linear) {
     znn_layer_params_linear *ld = this->parameters;
     znn_tensor_destroy(ld->weights);
     znn_tensor_destroy(ld->biases);
@@ -117,10 +119,10 @@ znn_layer _znn_layer_linear(u32 in_features, u32 out_features, char *file, u32 l
 
     znn_layer l = {0};
     l.n_params = 2;
-    l.init = znn_layer_init_linear;
-    l.forward = znn_layer_forward_linear;
-    l.destroy = znn_layer_destroy_linear;
     l.parameters = params;
+    ZNN_FXN_SET(l.init, _znn__init_linear);
+    ZNN_FXN_SET(l.forward, _znn__forward_linear);
+    ZNN_FXN_SET(l.destroy, _znn__destroy_linear);
 
     return l;
 }

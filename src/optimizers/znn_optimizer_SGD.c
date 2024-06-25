@@ -1,7 +1,7 @@
 #include "../znn_optimizers.h"
 #include <omp.h>
 
-ZNN_OPTIMIZER_STEP_FXN(znn_optimizer_step_SGD) {
+static ZNN_OPTIMIZER_STEP_FXN(_znn__step_SGD) {
 #if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
 #endif
@@ -14,6 +14,7 @@ ZNN_OPTIMIZER_STEP_FXN(znn_optimizer_step_SGD) {
 }
 
 znn_optimizer znn_optimizer_SGD(znn_tensor **params, u32 n_params, f32 learning_rate) {
-    znn_optimizer s = {params, n_params, learning_rate, znn_optimizer_step_SGD};
+    znn_optimizer s = {params, n_params, learning_rate};
+    ZNN_FXN_SET(s.step, _znn__step_SGD);
     return s;
 }

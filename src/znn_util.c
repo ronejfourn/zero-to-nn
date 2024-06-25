@@ -43,7 +43,7 @@ u64 _znn_correct_endian_little64(u64 n) { return
     (n & 0xff00000000000000) >> 56 ; }
 u64 _znn_correct_endian_big64(u64 n) { return n; }
 
-void _znn_check_endian() {
+static void _znn_check_endian() {
     u8 b[4] = {1, 0, 0, 0};
     if (*(u32*)b == 1) {
         znn_correct_endian16 = _znn_correct_endian_little16;

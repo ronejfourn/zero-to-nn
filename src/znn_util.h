@@ -12,6 +12,9 @@
 #define znn_trace(...)
 #endif
 
+#define ZNN_FXN(F) struct {F fn; const char *name;}
+#define ZNN_FXN_SET(V, F) do { (V).fn = F; (V).name = #F; } while (0)
+
 #define znn_unimplemented() assert(!"implemented")
 #define znn_unreachable() assert(!"reachable")
 
