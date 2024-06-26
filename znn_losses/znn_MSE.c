@@ -1,9 +1,5 @@
 #include "../znn_losses.h"
 
-#if ZNN_OPENMP_ENABLE
-#include <omp.h>
-#endif
-
 static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_MSE) {
     znn_tensor **prev = this->prev;
     znn_tensor *input = prev[0];
@@ -12,9 +8,7 @@ static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_MSE) {
 
     u32 N = input->step[0];
 
-#if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
-#endif
     for (u32 i = 0; i < input->shape[0]; i ++) {
         f32 *x = input->data + i * N;
         f32 *y = target->data + i * N;
@@ -37,9 +31,7 @@ static ZNN_LOSS_CALC_FXN(_znn__calc_MSE) {
     f32 s = 0;
     u32 N = input->step[0];
 
-#if ZNN_OPENMP_ENABLE
     #pragma omp parallel for reduction(+:s)
-#endif
     for (u32 i = 0; i < input->shape[0]; i ++) {
         f32 *x = input->data + i * N;
         f32 *y = target->data + i * N;

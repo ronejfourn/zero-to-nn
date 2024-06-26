@@ -6,6 +6,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#if ZNN_OPENMP_ENABLE
+#include <omp.h>
+#endif
+
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;

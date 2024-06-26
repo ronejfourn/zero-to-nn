@@ -1,9 +1,5 @@
 #include "common.h"
 
-#if ZNN_OPENMP_ENABLE
-#include <omp.h>
-#endif
-
 typedef struct {
     znn_tensor weights;
     znn_tensor biases;
@@ -15,9 +11,7 @@ static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_linear_n) {
     u32 fo = prev[1]->shape[0];
     u32 K = this->size / fo;
 
-#if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
-#endif
     for (u32 k = 0; k < K; k++) {
         f32 *iv = prev[0]->data + k * fi;
         f32 *og = this->grad + k * fo;
@@ -36,9 +30,7 @@ static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_linear_y) {
     u32 fo = prev[1]->shape[0];
     u32 K = this->size / fo;
 
-#if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
-#endif
     for (u32 k = 0; k < K; k ++) {
         f32 *iv = prev[0]->data + k * fi;
         f32 *ig = prev[0]->grad + k * fi;
@@ -83,9 +75,7 @@ static ZNN_LAYER_FORWARD_FXN(_znn__forward_linear) {
     u32 fo = wt->shape[0];
     u32 K = ot->size / fo;
 
-#if ZNN_OPENMP_ENABLE
     #pragma omp parallel for
-#endif
     for (u32 k = 0; k < K; k ++) {
         f32 *ov = ot->data + k * fo;
         f32 *iv = it->data + k * fi;
