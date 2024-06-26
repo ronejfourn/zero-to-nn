@@ -1,4 +1,3 @@
-#include "znn_util.h"
 #include "znn_optimizers.h"
 
 #include "znn_optimizers/znn_SGD.c"

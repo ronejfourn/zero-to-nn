@@ -1,6 +1,6 @@
 #pragma once
 
-#include "znn_util.h"
+#include "znn_common.h"
 
 struct znn_tensor;
 

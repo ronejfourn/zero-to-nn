@@ -1,4 +1,3 @@
-#include "znn_util.h"
 #include "znn_tensor.h"
 
 #include <stdarg.h>

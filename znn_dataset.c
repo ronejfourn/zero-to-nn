@@ -1,4 +1,3 @@
-#include "znn_util.h"
 #include "znn_dataset.h"
 
 #define FREAD(...) assert(fread(__VA_ARGS__))

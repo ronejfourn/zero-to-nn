@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../znn_common.h"
 
 static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_flatten) {
 }

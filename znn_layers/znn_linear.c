@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../znn_common.h"
 
 typedef struct {
     znn_tensor weights;

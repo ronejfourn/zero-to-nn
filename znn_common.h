@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <math.h>
 
 #if ZNN_OPENMP_ENABLE
 #include <omp.h>

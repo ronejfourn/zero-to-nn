@@ -1,4 +1,3 @@
-#include "znn_util.h"
 #include "znn_layers.h"
 
 #include "znn_layers/znn_ReLU.c"
