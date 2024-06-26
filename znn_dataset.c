@@ -22,6 +22,7 @@ static inline u32 _znn__idx_sizeof(u8 t) {
     case ZNN_IDX_DOUBLE : return 8;
     default: znn_unreachable();
     }
+    return 0;
 }
 
 static inline u32 _znn__idx_read_u32(FILE *f) {
@@ -42,6 +43,11 @@ static inline u32 _znn__idx_read_hdr(FILE *f, u8 *t) {
 
 static znn_dataset_idx _znn__idx_load_file(const char *path) {
     FILE *fptr = fopen(path, "rb");
+    if (!fptr) {
+        fprintf(stderr, "fopen(\"%s\", \"rb\" failed)\n", path);
+        assert(fptr);
+    }
+
     znn_dataset_idx d = {0};
     d.dim = _znn__idx_read_hdr(fptr, &d.type);
     d.shape = znn_malloc(d.dim * 4);

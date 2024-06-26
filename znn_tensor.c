@@ -1,6 +1,5 @@
 #include "znn_util.h"
 #include "znn_tensor.h"
-#include "znn_random.h"
 
 #include <stdarg.h>
 

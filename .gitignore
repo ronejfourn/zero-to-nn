@@ -1,5 +1,7 @@
+*.exe
+*.obj
 *.out
 *.gch
-res/
-obj/
-znn_mnist
+**/res/
+**/obj/
+**/bin/

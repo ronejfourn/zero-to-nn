@@ -1,13 +1,11 @@
-#include "znn_util.h"
-#include "znn_loss.h"
-#include "znn_layers.h"
-#include "znn_random.h"
-#include "znn_dataset.h"
-#include "znn_optimizers.h"
+#include "../../znn.h"
 
 #define EPOCHS 5
 #define BATCH_SIZE 16
 #define LEARNING_RATE 5e-3
+
+#define _STR(X) #X
+#define STR(X) _STR(X)
 
 bool check(f32 *p, f32 *y) {
     u32 s = 0;
@@ -24,11 +22,11 @@ bool check(f32 *p, f32 *y) {
 
 int main() {
     znn_dataset train = znn_dataset_load_idx(
-            ZNN_DATASET_DIR"train-images-idx3-ubyte",
-            ZNN_DATASET_DIR"train-labels-idx1-ubyte");
+            STR(DATASET_DIR)"/train-images-idx3-ubyte",
+            STR(DATASET_DIR)"/train-labels-idx1-ubyte");
     znn_dataset test = znn_dataset_load_idx(
-            ZNN_DATASET_DIR"t10k-images-idx3-ubyte",
-            ZNN_DATASET_DIR"t10k-labels-idx1-ubyte");
+            STR(DATASET_DIR)"/t10k-images-idx3-ubyte",
+            STR(DATASET_DIR)"/t10k-labels-idx1-ubyte");
 
 #if 0
 
@@ -107,3 +105,4 @@ int main() {
     znn_sequential_destroy(s);
     return 0;
 }
+

@@ -1,5 +1,4 @@
-#include "../znn_loss.h"
-#include "../znn_util.h"
+#include "../znn_losses.h"
 
 #if ZNN_OPENMP_ENABLE
 #include <omp.h>

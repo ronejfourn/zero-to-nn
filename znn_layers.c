@@ -1,6 +1,11 @@
 #include "znn_util.h"
 #include "znn_layers.h"
 
+#include "znn_layers/znn_ReLU.c"
+#include "znn_layers/znn_flatten.c"
+#include "znn_layers/znn_linear.c"
+#include "znn_layers/znn_softmax.c"
+
 // TODO: currently assumes input shape never changes
 znn_tensor *znn_layer_forward(struct znn_layer *this, znn_tensor *input) {
     if (!this->input) {

@@ -1,27 +1,23 @@
-TARGET_EXEC := znn_mnist
+TARGET_DIR := bin
+TARGET := mnist
 
-OBJ_DIR := ./obj
-SRC_DIRS := ./src
+SRC_DIRS := . ../..
 DATASET_DIR := $(shell realpath ./res/)
 DATASETS := train-images-idx3-ubyte train-labels-idx1-ubyte t10k-images-idx3-ubyte t10k-labels-idx1-ubyte
 
 DATASET_PATH := $(DATASETS:%=$(DATASET_DIR)/%)
 
-CFLAGS := -DZNN_DATASET_DIR=\"$(DATASET_DIR)/\" -DZNN_OPENMP_ENABLE=1
+CFLAGS := -DDATASET_DIR=$(DATASET_DIR) -DZNN_OPENMP_ENABLE=1
 CFLAGS += -march=native -O3 -fopenmp -ffast-math
 CFLAGS += -Wall -pedantic
 
 LDFLAGS := -lm -fopenmp -ffast-math
 
-SRCS := $(shell find $(SRC_DIRS) -name '*.c')
-OBJS := $(SRCS:%=$(OBJ_DIR)/%.o)
+SRCS := $(shell find $(SRC_DIRS) -maxdepth 1 -name '*.c')
 
-$(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
-
-$(OBJ_DIR)/%.c.o: %.c $(DATASET_PATH)
+$(TARGET_DIR)/$(TARGET): $(SRCS) $(DATASET_PATH)
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(SRCS) -o $@ $(LDFLAGS)
 
 $(DATASET_PATH):
 	mkdir -p $(dir $@)
@@ -30,5 +26,4 @@ $(DATASET_PATH):
 
 .PHONY: clean
 clean:
-	rm -rf $(OBJ_DIR)
-	rm $(TARGET_EXEC)
+	rm -rf $(TARGET_DIR)

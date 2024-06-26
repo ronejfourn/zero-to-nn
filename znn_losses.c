@@ -1,5 +1,6 @@
-#include "znn_util.h"
-#include "znn_loss.h"
+#include "znn_losses.h"
+
+#include "znn_losses/znn_MSE.c"
 
 znn_tensor *znn_loss_calc(znn_loss *this, znn_tensor *input, znn_tensor *target) {
     this->calc.fn(this, input, target);

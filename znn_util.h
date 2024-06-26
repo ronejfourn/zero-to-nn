@@ -1,9 +1,27 @@
 #pragma once
 
-#include "znn_types.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
+#include <stddef.h>
+
+typedef uint64_t u64;
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
+
+typedef int64_t  i64;
+typedef int32_t  i32;
+typedef int16_t  i16;
+typedef int8_t   i8;
+
+typedef float    f32;
+typedef double   f64;
+
+#ifndef __cplusplus
+typedef enum { false, true } bool;
+#endif
 
 #if ZNN_TRACE_ENABLE
 #define ZNN_TRACE_FMT "%s:%d: %s"
@@ -19,6 +37,11 @@
 #define znn_unreachable() assert(!"reachable")
 
 #define znn_arraylen(_A) (sizeof(_A) / sizeof(*(_A)))
+
+u32 znn_randint();
+f32 znn_rand();
+f32 znn_randn();
+f32 znn_randr(f32 a, f32 b);
 
 #define znn_malloc(_SIZE) _znn_malloc(_SIZE, __FILE__, __LINE__)
 void *_znn_malloc(u32 size, const char *file, u32 line);
