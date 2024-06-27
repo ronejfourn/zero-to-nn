@@ -2,19 +2,25 @@
 
 static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_softmax) {
     uintptr_t dim = (uintptr_t)this->backward_data;
-    znn_tensor *prev = this->prev;
-    u32 I = dim ? prev->step[dim - 1] : prev->size;
-    u32 J = prev->step[dim];
-    u32 K = prev->shape[dim] * J;
+    znn_tensor *input = this->prev;
+
+    u32 s = 1;
+    for (u32 i = dim; i < input->dim; i ++)
+        s *= input->shape[i];
+
+    u32 I = s;
+    u32 J = s / input->shape[dim];
 
     #pragma omp parallel for
-    for (int i = 0; i < prev->size; i += I) {
-        f32 *oi = this->data + i, *gi = prev->grad + i;
+    for (u32 i = 0; i < input->size; i += I) {
+        f32 *oi = this->data + i, *gi = input->grad + i;
         for (u32 j = 0; j < J; j ++) {
             f32 *oj = oi + j, *gj = gi + j;
-            for (u32 k = 0; k < K; k += J)
-                for (u32 l = 0; l < K; l += J)
+            for (u32 k = 0; k < I; k += J) {
+                for (u32 l = 0; l < I; l += J) {
                     gj[k] += oj[l] * ((l == k) - oj[k]);
+                }
+            }
         }
     }
 }
@@ -36,20 +42,23 @@ static ZNN_LAYER_FORWARD_FXN(_znn__forward_softmax) {
     znn_tensor *input = this->input;
     znn_tensor *output = &this->output;
 
-    u32 I = dim ? input->step[dim - 1] : input->size;
-    u32 J = input->step[dim];
-    u32 K = input->shape[dim] * J;
+    u32 s = 1;
+    for (u32 i = dim; i < input->dim; i ++)
+        s *= input->shape[i];
+
+    u32 I = s;
+    u32 J = s / input->shape[dim];
 
     #pragma omp parallel for
-    for (int i = 0; i < input->size; i += I) {
+    for (u32 i = 0; i < input->size; i += I) {
         f32 *oi = output->data + i;
         for (u32 j = 0; j < J; j ++) {
             f32 sum = 0;
             f32 *oj = oi + j;
-            for (u32 k = 0; k < K; k += J)
+            for (u32 k = 0; k < I; k += J)
                 sum += (oj[k] = exp(input->data[i + j + k]));
 
-            for (u32 k = 0; k < K; k += J)
+            for (u32 k = 0; k < I; k += J)
                 oj[k] /= sum;
         }
     }

@@ -6,7 +6,7 @@ static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_MSE) {
     znn_tensor *target = prev[1];
     if (!input->grad) return;
 
-    u32 N = input->step[0];
+    u32 N = input->size / input->shape[0];
 
     #pragma omp parallel for
     for (u32 i = 0; i < input->shape[0]; i ++) {
@@ -29,7 +29,7 @@ static ZNN_LOSS_CALC_FXN(_znn__calc_MSE) {
         assert(target->shape[i] == input->shape[i]);
 
     f32 s = 0;
-    u32 N = input->step[0];
+    u32 N = input->size / input->shape[0];
 
     #pragma omp parallel for reduction(+:s)
     for (u32 i = 0; i < input->shape[0]; i ++) {

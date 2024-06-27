@@ -5,7 +5,7 @@ static ZNN_TENSOR_BACKWARD_FXN(_znn__backward_flatten) {
 
 static ZNN_LAYER_INIT_FXN(_znn__init_flatten) {
     this->output = znn_tensor_from_data(
-            NULL, input->shape[0], input->step[0]);
+            NULL, input->shape[0], input->size / input->shape[0]);
     if (input->grad) 
         ZNN_FXN_SET(this->output.backward, _znn__backward_flatten);
     znn_tensor_set_prev(&this->output, input);
